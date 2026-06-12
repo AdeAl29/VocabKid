@@ -35,6 +35,9 @@ interface WordDao {
     @Query("SELECT * FROM words ORDER BY englishWord ASC")
     suspend fun getAllWords(): List<WordEntity>
 
+    @Query("SELECT LOWER(TRIM(englishWord)) FROM words")
+    suspend fun getNormalizedEnglishWords(): List<String>
+
     @Query("SELECT COUNT(*) FROM words")
     fun observeWordCount(): Flow<Int>
 

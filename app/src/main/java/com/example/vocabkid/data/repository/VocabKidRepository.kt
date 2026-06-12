@@ -101,17 +101,21 @@ class VocabKidRepository(
 
     suspend fun seedInitialVocabularyIfNeeded() {
         database.withTransaction {
-            val count = wordDao.countWords()
-            if (count == 0) {
-                val ids = wordDao.insertWords(InitialVocabulary.words)
-                val today = DateUtils.todayMillis()
+            val today = DateUtils.todayMillis()
+            val existingWords = wordDao.getNormalizedEnglishWords().toSet()
+            val newWords = InitialVocabulary.words.filterNot { word ->
+                word.englishWord.trim().lowercase() in existingWords
+            }
+
+            if (newWords.isNotEmpty()) {
+                val ids = wordDao.insertWords(newWords)
                 val progressList = ids.map { wordId ->
                     createInitialProgress(wordId = wordId, today = today)
                 }
                 progressDao.insertProgressList(progressList)
-            } else {
-                ensureProgressForExistingWords()
             }
+
+            ensureProgressForExistingWords(today)
         }
     }
 
@@ -187,11 +191,11 @@ class VocabKidRepository(
         }
     }
 
-    private suspend fun ensureProgressForExistingWords() {
+    private suspend fun ensureProgressForExistingWords(today: Long = DateUtils.todayMillis()) {
         val existingProgressWordIds = progressDao.getProgressWordIds().toSet()
         val missingProgress = wordDao.getAllWords()
             .filterNot { it.id in existingProgressWordIds }
-            .map { word -> createInitialProgress(word.id, DateUtils.todayMillis()) }
+            .map { word -> createInitialProgress(word.id, today) }
 
         if (missingProgress.isNotEmpty()) {
             progressDao.insertProgressList(missingProgress)

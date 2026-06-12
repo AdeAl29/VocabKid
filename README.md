@@ -15,7 +15,7 @@ Judul skripsi:
 - Daftar kosakata dengan fitur tambah, edit, hapus, dan detail kosakata.
 - Progress belajar berisi total kosakata, kosakata dikuasai, kosakata perlu diulang, akurasi, dan jumlah review.
 - Database lokal Room sehingga aplikasi tetap berjalan offline tanpa Firebase atau backend.
-- Seed data awal lebih dari 50 kosakata Bahasa Inggris untuk siswa SD.
+- Seed data awal lebih dari 1.000 kosakata Bahasa Inggris untuk siswa SD.
 
 ## Algoritma Spaced Repetition
 
