@@ -7,12 +7,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vocabkid.presentation.components.KidTopBar
@@ -25,6 +37,11 @@ fun ProgressScreen(
     onBackClick: () -> Unit
 ) {
     val stats by viewModel.stats.collectAsStateWithLifecycle()
+    val masteredPercent = if (stats.totalWords == 0) {
+        0
+    } else {
+        (stats.masteredWords * 100) / stats.totalWords
+    }
 
     Scaffold(
         topBar = {
@@ -42,6 +59,36 @@ fun ProgressScreen(
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "$masteredPercent% kosakata dikuasai",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "${stats.masteredWords} dari ${stats.totalWords} kata sudah terasa lebih familiar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    ProgressLine(
+                        label = "Target penguasaan",
+                        value = stats.masteredWords,
+                        max = stats.totalWords
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -50,12 +97,15 @@ fun ProgressScreen(
                     title = "Total",
                     value = stats.totalWords.toString(),
                     supportingText = "kosakata",
+                    icon = Icons.AutoMirrored.Filled.MenuBook,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     title = "Dikuasai",
                     value = stats.masteredWords.toString(),
-                    supportingText = "kosakata",
+                    supportingText = "kata",
+                    icon = Icons.Default.CheckCircle,
+                    accentColor = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -65,44 +115,65 @@ fun ProgressScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatCard(
-                    title = "Perlu ulang",
+                    title = "Ulang",
                     value = stats.dueWords.toString(),
                     supportingText = "hari ini",
+                    icon = Icons.Default.Refresh,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     title = "Akurasi",
                     value = "${stats.accuracyPercent}%",
                     supportingText = "jawaban benar",
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                    accentColor = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
                 )
             }
 
             StatCard(
-                title = "Review selesai",
+                title = "Total latihan",
                 value = stats.totalReviews.toString(),
-                supportingText = "total latihan tersimpan"
+                supportingText = "flashcard dan kuis",
+                icon = Icons.Default.BarChart,
+                accentColor = MaterialTheme.colorScheme.tertiary
             )
 
-            ProgressLine(
-                label = "Kosakata dikuasai",
-                value = stats.masteredWords,
-                max = stats.totalWords
-            )
-            ProgressLine(
-                label = "Akurasi jawaban",
-                value = stats.accuracyPercent,
-                max = 100
-            )
-            ProgressLine(
-                label = "Sering salah",
-                value = stats.frequentlyWrongWords,
-                max = stats.totalWords
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text(
+                    text = "Ritme latihan",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                ProgressLine(
+                    label = "Kosakata dikuasai",
+                    value = stats.masteredWords,
+                    max = stats.totalWords
+                )
+                ProgressLine(
+                    label = "Akurasi jawaban",
+                    value = stats.accuracyPercent,
+                    max = 100
+                )
+                ProgressLine(
+                    label = "Masih perlu dibantu",
+                    value = stats.frequentlyWrongWords,
+                    max = stats.totalWords
+                )
+            }
 
-            Text(
-                text = "Progress tersimpan di database lokal, jadi tetap ada walaupun aplikasi ditutup."
-            )
+            if (stats.frequentlyWrongWords > 0) {
+                StatCard(
+                    title = "Fokus berikutnya",
+                    value = stats.frequentlyWrongWords.toString(),
+                    supportingText = "kata yang sebaiknya dilatih lagi",
+                    icon = Icons.Default.ErrorOutline,
+                    accentColor = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

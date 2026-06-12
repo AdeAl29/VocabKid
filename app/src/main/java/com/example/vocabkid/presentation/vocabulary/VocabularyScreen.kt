@@ -2,25 +2,30 @@ package com.example.vocabkid.presentation.vocabulary
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +59,25 @@ fun VocabularyScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var editingWord by remember { mutableStateOf<WordEntity?>(null) }
     var deletingWord by remember { mutableStateOf<WordEntity?>(null) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val categories = remember(words) {
+        words.map { it.word.category }.distinct().sorted()
+    }
+    val filteredWords = remember(words, searchQuery, selectedCategory) {
+        val query = searchQuery.trim().lowercase()
+        words.filter { item ->
+            val matchesCategory = selectedCategory == null ||
+                item.word.category == selectedCategory
+            val matchesQuery = query.isBlank() ||
+                item.word.englishWord.lowercase().contains(query) ||
+                item.word.indonesianMeaning.lowercase().contains(query) ||
+                item.word.exampleSentence.lowercase().contains(query)
+
+            matchesCategory && matchesQuery
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -83,18 +108,39 @@ fun VocabularyScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     top = 12.dp,
                     bottom = 96.dp
                 )
             ) {
-                items(words, key = { it.word.id }) { item ->
-                    VocabularyItemCard(
-                        item = item,
-                        onDetailClick = { onDetailClick(item.word.id) },
-                        onEditClick = { editingWord = item.word },
-                        onDeleteClick = { deletingWord = item.word }
+                item {
+                    VocabularySearchHeader(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        categories = categories,
+                        selectedCategory = selectedCategory,
+                        onCategoryChange = { selectedCategory = it },
+                        visibleCount = filteredWords.size,
+                        totalCount = words.size
                     )
+                }
+
+                if (filteredWords.isEmpty()) {
+                    item {
+                        EmptyMessage(
+                            title = "Tidak ada hasil",
+                            message = "Coba kata lain atau pilih kategori berbeda."
+                        )
+                    }
+                } else {
+                    items(filteredWords, key = { it.word.id }) { item ->
+                        VocabularyItemCard(
+                            item = item,
+                            onDetailClick = { onDetailClick(item.word.id) },
+                            onEditClick = { editingWord = item.word },
+                            onDeleteClick = { deletingWord = item.word }
+                        )
+                    }
                 }
             }
         }
@@ -135,7 +181,7 @@ fun VocabularyScreen(
         AlertDialog(
             onDismissRequest = { deletingWord = null },
             title = { Text("Hapus kosakata?") },
-            text = { Text("Kosakata \"${word.englishWord}\" dan progressnya akan dihapus.") },
+            text = { Text("Kosakata \"${word.englishWord}\" akan dihapus dari daftar belajar.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -151,6 +197,70 @@ fun VocabularyScreen(
                     Text("Batal")
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun VocabularySearchHeader(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    categories: List<String>,
+    selectedCategory: String?,
+    onCategoryChange: (String?) -> Unit,
+    visibleCount: Int,
+    totalCount: Int
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Cari kosakata") },
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
+            },
+            trailingIcon = {
+                if (query.isNotBlank()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Bersihkan pencarian"
+                        )
+                    }
+                }
+            }
+        )
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            item {
+                FilterChip(
+                    selected = selectedCategory == null,
+                    onClick = { onCategoryChange(null) },
+                    label = { Text("Semua") }
+                )
+            }
+            items(categories, key = { it }) { category ->
+                FilterChip(
+                    selected = selectedCategory == category,
+                    onClick = {
+                        onCategoryChange(
+                            if (selectedCategory == category) null else category
+                        )
+                    },
+                    label = { Text(category) }
+                )
+            }
+        }
+
+        Text(
+            text = "$visibleCount dari $totalCount kosakata",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

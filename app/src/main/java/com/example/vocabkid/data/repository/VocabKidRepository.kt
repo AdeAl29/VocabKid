@@ -45,12 +45,14 @@ class VocabKidRepository(
         return combine(
             progressDao.observeDueCount(today),
             progressDao.observeMasteredCount(),
-            historyDao.observeReviewCountSince(today)
-        ) { dueToday, masteredWords, reviewsToday ->
+            historyDao.observeReviewCountSince(today),
+            wordDao.observeWordCount()
+        ) { dueToday, masteredWords, reviewsToday, totalWords ->
             HomeStats(
                 dueToday = dueToday,
                 masteredWords = masteredWords,
-                reviewsToday = reviewsToday
+                reviewsToday = reviewsToday,
+                totalWords = totalWords
             )
         }
     }

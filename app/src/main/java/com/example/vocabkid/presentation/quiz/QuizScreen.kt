@@ -13,6 +13,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -60,7 +61,7 @@ fun QuizScreen(
                 state.questions.isEmpty() -> {
                     EmptyMessage(
                         title = "Belum cukup kosakata",
-                        message = "Minimal diperlukan 4 kosakata agar pilihan ganda bisa dibuat."
+                        message = "Minimal perlu 4 kata untuk membuat kuis pilihan ganda."
                     )
                 }
 
@@ -73,11 +74,22 @@ fun QuizScreen(
                 }
 
                 currentQuestion != null -> {
-                    Text(
-                        text = "Soal ${state.currentIndex + 1} dari ${state.questions.size}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Soal ${state.currentIndex + 1} dari ${state.questions.size}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        LinearProgressIndicator(
+                            progress = {
+                                (state.currentIndex + 1).toFloat() / state.questions.size.toFloat()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -120,9 +132,9 @@ fun QuizScreen(
 
                     if (state.selectedAnswer != null) {
                         val message = if (state.isAnswerCorrect == true) {
-                            "Benar! 🎯"
+                            "Benar, mantap!"
                         } else {
-                            "Jawaban benar: ${currentQuestion.correctAnswer}"
+                            "Jawaban yang tepat: ${currentQuestion.correctAnswer}"
                         }
                         Text(
                             text = message,
@@ -172,6 +184,12 @@ private fun ChoiceButton(
         isSelected -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
         else -> MaterialTheme.colorScheme.surface
     }
+    val contentColor = when {
+        selectedAnswer == null -> MaterialTheme.colorScheme.onSurface
+        isCorrectChoice -> MaterialTheme.colorScheme.onPrimaryContainer
+        isSelected -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     OutlinedButton(
         onClick = {
@@ -180,12 +198,14 @@ private fun ChoiceButton(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = containerColor
+            containerColor = containerColor,
+            contentColor = contentColor
         )
     ) {
         Text(
             text = choice,
             style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 6.dp)
         )
     }
@@ -197,6 +217,8 @@ private fun QuizResult(
     total: Int,
     onRestartClick: () -> Unit
 ) {
+    val percent = if (total == 0) 0 else (score * 100) / total
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
@@ -212,9 +234,10 @@ private fun QuizResult(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Kuis selesai! ⭐",
+                text = "Kuis selesai",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
                 text = "$score / $total",
@@ -223,9 +246,10 @@ private fun QuizResult(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Hasil kuis sudah tersimpan ke progress belajar.",
+                text = "Skor kamu $percent%. Kata yang belum tepat bisa dilatih lagi nanti.",
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Button(
                 onClick = onRestartClick,

@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -20,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,12 +59,12 @@ fun StudyScreen(
         ) {
             if (currentCard == null) {
                 EmptyMessage(
-                    title = "Hebat! Tidak ada kartu jatuh tempo ⭐",
-                    message = "Semua kosakata untuk hari ini sudah selesai. Coba kuis ringan atau kembali besok."
+                    title = "Selesai untuk hari ini",
+                    message = "Kamu bisa mencoba kuis ringan atau kembali lagi nanti."
                 )
             } else {
                 Text(
-                    text = "Kartu tersisa hari ini: ${dueCards.size}",
+                    text = "Tersisa ${dueCards.size} kartu",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -79,6 +84,10 @@ fun StudyScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(18.dp)
                     ) {
+                        AssistChip(
+                            onClick = {},
+                            label = { Text(currentCard.word.category) }
+                        )
                         Text(
                             text = currentCard.word.englishWord,
                             style = MaterialTheme.typography.displaySmall,
@@ -86,24 +95,25 @@ fun StudyScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center
                         )
-                        Text(
-                            text = currentCard.word.category,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
 
                         if (viewModel.showMeaning) {
-                            Text(
-                                text = currentCard.word.indonesianMeaning,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = currentCard.word.exampleSentence,
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = currentCard.word.indonesianMeaning,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = currentCard.word.exampleSentence,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
                 }
@@ -114,6 +124,11 @@ fun StudyScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
                         Text(
                             text = "Lihat Arti",
                             style = MaterialTheme.typography.titleMedium
@@ -128,12 +143,16 @@ fun StudyScreen(
                             ReviewButton(
                                 text = "Ulangi",
                                 onClick = { viewModel.review(currentCard.word.id, 0) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                enabled = !viewModel.isReviewing,
+                                containerColor = MaterialTheme.colorScheme.error
                             )
                             ReviewButton(
                                 text = "Sulit",
                                 onClick = { viewModel.review(currentCard.word.id, 3) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                enabled = !viewModel.isReviewing,
+                                containerColor = MaterialTheme.colorScheme.secondary
                             )
                         }
                         Row(
@@ -143,12 +162,16 @@ fun StudyScreen(
                             ReviewButton(
                                 text = "Cukup",
                                 onClick = { viewModel.review(currentCard.word.id, 4) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                enabled = !viewModel.isReviewing,
+                                containerColor = MaterialTheme.colorScheme.primary
                             )
                             ReviewButton(
                                 text = "Mudah",
                                 onClick = { viewModel.review(currentCard.word.id, 5) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                enabled = !viewModel.isReviewing,
+                                containerColor = MaterialTheme.colorScheme.tertiary
                             )
                         }
                     }
@@ -162,15 +185,17 @@ fun StudyScreen(
 private fun ReviewButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean,
+    containerColor: Color
 ) {
     Button(
         onClick = onClick,
         modifier = modifier,
-        enabled = true,
+        enabled = enabled,
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondary
+            containerColor = containerColor
         )
     ) {
         Text(

@@ -48,6 +48,8 @@ fun VocabularyDetailScreen(
                 modifier = Modifier.padding(paddingValues)
             )
         } else {
+            val progress = item.progress
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -75,7 +77,8 @@ fun VocabularyDetailScreen(
                         )
                         Text(
                             text = item.word.indonesianMeaning,
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         AssistChip(
                             onClick = {},
@@ -85,22 +88,26 @@ fun VocabularyDetailScreen(
                 }
 
                 DetailRow(title = "Contoh kalimat", value = item.word.exampleSentence)
-                DetailRow(title = "Status", value = item.progress?.status ?: "Baru")
+                DetailRow(title = "Status", value = progress?.status ?: "Baru")
                 DetailRow(
-                    title = "Pengulangan berikutnya",
-                    value = DateUtils.formatDate(item.progress?.dueDate)
+                    title = "Terakhir dilatih",
+                    value = DateUtils.formatDate(progress?.lastReviewedDate)
                 )
                 DetailRow(
-                    title = "Jumlah benar",
-                    value = (item.progress?.correctCount ?: 0).toString()
+                    title = "Ulang lagi",
+                    value = DateUtils.formatDate(progress?.dueDate)
                 )
                 DetailRow(
-                    title = "Jumlah salah",
-                    value = (item.progress?.wrongCount ?: 0).toString()
+                    title = "Jawaban benar",
+                    value = (progress?.correctCount ?: 0).toString()
                 )
                 DetailRow(
-                    title = "Ease factor",
-                    value = String.format("%.2f", item.progress?.easeFactor ?: 2.5)
+                    title = "Perlu dicoba lagi",
+                    value = (progress?.wrongCount ?: 0).toString()
+                )
+                DetailRow(
+                    title = "Putaran latihan",
+                    value = "${progress?.repetition ?: 0} kali"
                 )
             }
         }
