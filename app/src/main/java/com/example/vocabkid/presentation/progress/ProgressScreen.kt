@@ -9,13 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,27 +16,46 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.vocabkid.presentation.components.DifficultWordsDialog
 import com.example.vocabkid.presentation.components.KidTopBar
 import com.example.vocabkid.presentation.components.ProgressLine
-import com.example.vocabkid.presentation.components.StatCard
 
 @Composable
 fun ProgressScreen(
     viewModel: ProgressViewModel,
-    onBackClick: () -> Unit
+    bottomContentPadding: Dp = 0.dp,
+    onBackClick: (() -> Unit)? = null,
+    onStudyClick: () -> Unit = {}
 ) {
     val stats by viewModel.stats.collectAsStateWithLifecycle()
+    val difficultWords by viewModel.difficultWords.collectAsStateWithLifecycle()
+    var isDifficultWordsDialogOpen by rememberSaveable { mutableStateOf(false) }
     val masteredPercent = if (stats.totalWords == 0) {
         0
     } else {
         (stats.masteredWords * 100) / stats.totalWords
     }
 
+    if (isDifficultWordsDialogOpen) {
+        DifficultWordsDialog(
+            words = difficultWords,
+            onDismiss = { isDifficultWordsDialogOpen = false },
+            onPracticeClick = onStudyClick
+        )
+    }
+
     Scaffold(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             KidTopBar(
                 title = "Progress Belajar",
@@ -56,8 +68,9 @@ fun ProgressScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 18.dp)
+                .padding(bottom = bottomContentPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -93,19 +106,18 @@ fun ProgressScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(
-                    title = "Total",
+                ProgressVisualStatCard(
+                    type = ProgressStatVisual.Total,
                     value = stats.totalWords.toString(),
+                    label = "Total",
                     supportingText = "kosakata",
-                    icon = Icons.AutoMirrored.Filled.MenuBook,
                     modifier = Modifier.weight(1f)
                 )
-                StatCard(
-                    title = "Dikuasai",
+                ProgressVisualStatCard(
+                    type = ProgressStatVisual.Mastered,
                     value = stats.masteredWords.toString(),
+                    label = "Dikuasai",
                     supportingText = "kata",
-                    icon = Icons.Default.CheckCircle,
-                    accentColor = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -114,29 +126,27 @@ fun ProgressScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(
-                    title = "Ulang",
+                ProgressVisualStatCard(
+                    type = ProgressStatVisual.Due,
                     value = stats.dueWords.toString(),
+                    label = "Ulang",
                     supportingText = "hari ini",
-                    icon = Icons.Default.Refresh,
                     modifier = Modifier.weight(1f)
                 )
-                StatCard(
-                    title = "Akurasi",
+                ProgressVisualStatCard(
+                    type = ProgressStatVisual.Accuracy,
                     value = "${stats.accuracyPercent}%",
+                    label = "Akurasi",
                     supportingText = "jawaban benar",
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    accentColor = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            StatCard(
-                title = "Total latihan",
+            ProgressVisualStatCard(
+                type = ProgressStatVisual.Reviews,
                 value = stats.totalReviews.toString(),
-                supportingText = "flashcard dan kuis",
-                icon = Icons.Default.BarChart,
-                accentColor = MaterialTheme.colorScheme.tertiary
+                label = "Total latihan",
+                supportingText = "flashcard dan kuis"
             )
 
             Column(
@@ -165,15 +175,13 @@ fun ProgressScreen(
                 )
             }
 
-            if (stats.frequentlyWrongWords > 0) {
-                StatCard(
-                    title = "Fokus berikutnya",
-                    value = stats.frequentlyWrongWords.toString(),
-                    supportingText = "kata yang sebaiknya dilatih lagi",
-                    icon = Icons.Default.ErrorOutline,
-                    accentColor = MaterialTheme.colorScheme.error
-                )
-            }
+            ProgressVisualStatCard(
+                type = ProgressStatVisual.Focus,
+                value = stats.frequentlyWrongWords.toString(),
+                label = "Kata Sulit",
+                supportingText = "tekan untuk melihat",
+                onClick = { isDifficultWordsDialogOpen = true }
+            )
         }
     }
 }

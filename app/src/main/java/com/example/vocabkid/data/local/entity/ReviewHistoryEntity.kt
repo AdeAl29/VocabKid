@@ -15,7 +15,11 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["wordId"])]
+    indices = [
+        Index(value = ["wordId"]),
+        Index(value = ["reviewDate"]),
+        Index(value = ["mode"])
+    ]
 )
 data class ReviewHistoryEntity(
     @PrimaryKey(autoGenerate = true)

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    VocabKid App Icon — Background Layer
+    Vibrant sky-blue gradient with rolling hills.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Sky gradient base: top-blue -->
+    <path
+        android:pathData="M0,0 L108,0 L108,108 L0,108 Z"
+        android:fillColor="#1A80FF" />
+
+    <!-- Gradient mid band cyan -->
+    <path
+        android:pathData="M0,36 L108,36 L108,108 L0,108 Z"
+        android:fillColor="#64CFFF"
+        android:fillAlpha="0.72" />
+
+    <!-- Light bottom -->
+    <path
+        android:pathData="M0,70 L108,70 L108,108 L0,108 Z"
+        android:fillColor="#AEE8FF"
+        android:fillAlpha="0.58" />
+
+    <!-- Radial glow behind robot center -->
+    <path
+        android:pathData="M54,54 m-32,0 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.16" />
+
+    <!-- Top-right halo -->
+    <path
+        android:pathData="M90,14 m-18,0 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12" />
+
+    <!-- Rolling hill back -->
+    <path
+        android:pathData="M0,90 C18,82 34,94 54,88 C74,82 90,92 108,86 L108,108 L0,108 Z"
+        android:fillColor="#51C8A7"
+        android:fillAlpha="0.68" />
+
+    <!-- Rolling hill front -->
+    <path
+        android:pathData="M0,96 C22,90 42,100 62,94 C78,90 94,98 108,94 L108,108 L0,108 Z"
+        android:fillColor="#84D88C"
+        android:fillAlpha="0.82" />
+
+</vector>

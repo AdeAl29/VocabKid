@@ -2,6 +2,7 @@ package com.example.vocabkid.presentation.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vocabkid.data.local.entity.WordWithProgressEntity
 import com.example.vocabkid.data.repository.VocabKidRepository
 import com.example.vocabkid.domain.model.ProgressStats
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,4 +14,7 @@ class ProgressViewModel(
 ) : ViewModel() {
     val stats: StateFlow<ProgressStats> = repository.observeProgressStats()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProgressStats())
+
+    val difficultWords: StateFlow<List<WordWithProgressEntity>> = repository.observeDifficultWords()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 }

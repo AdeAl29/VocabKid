@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-labelledby="title desc">
+  <title id="title">Flowchart Aplikasi VocaRepeat</title>
+  <desc id="desc">Flowchart alur utama aplikasi VocaRepeat dengan alur utama lurus sejajar dari Mulai sampai Kuis.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.2" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8.5,3 z" fill="#2f2f2f" />
+    </marker>
+  </defs>
+
+  <style>
+    .background {
+      fill: #ffffff;
+    }
+
+    .node {
+      fill: #ffffff;
+      stroke: #2f2f2f;
+      stroke-width: 2.5;
+    }
+
+    .flow-line {
+      fill: none;
+      stroke: #2f2f2f;
+      stroke-width: 2.5;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+      marker-end: url(#arrow);
+    }
+
+    .label {
+      fill: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 23px;
+      font-weight: 400;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .small-label {
+      fill: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+  </style>
+
+  <rect class="background" width="1200" height="1500" />
+
+  <!-- Alur utama -->
+  <rect class="node" x="390" y="30" width="220" height="55" rx="27.5" />
+  <text class="label" x="500" y="58">Mulai</text>
+
+  <path class="flow-line" d="M500 85 V115" />
+
+  <rect class="node" x="360" y="115" width="280" height="55" />
+  <text class="label" x="500" y="143">Buka Aplikasi</text>
+
+  <path class="flow-line" d="M500 170 V200" />
+
+  <rect class="node" x="360" y="200" width="280" height="55" />
+  <text class="label" x="500" y="228">Splash Screen</text>
+
+  <path class="flow-line" d="M500 255 V280" />
+
+  <polygon class="node" points="500,280 645,340 500,400 355,340" />
+  <text class="label" x="500" y="340">Sudah Login?</text>
+
+  <path class="flow-line" d="M500 400 V430" />
+  <text class="small-label" x="530" y="416">Ya</text>
+
+  <path class="flow-line" d="M645 340 H735" />
+  <text class="small-label" x="690" y="323">Tidak</text>
+
+  <rect class="node" x="735" y="312" width="230" height="56" />
+  <text class="label" x="850" y="340">Login / Daftar</text>
+
+  <path class="flow-line" d="M850 368 V430" />
+
+  <rect class="node" x="360" y="430" width="540" height="55" />
+  <text class="label" x="500" y="458">Halaman Beranda</text>
+
+  <path class="flow-line" d="M500 485 V525" />
+
+  <polygon class="node" points="500,525 645,590 500,655 355,590" />
+  <text class="label" x="500" y="590">Pilih Menu?</text>
+
+  <!-- Cabang menu -->
+  <path class="flow-line" d="M500 655 V720" />
+  <path class="flow-line" d="M645 590 H850 V720" />
+
+  <!-- Cabang kuis, lurus sejajar dengan Mulai -->
+  <rect class="node" x="380" y="720" width="240" height="58" />
+  <text class="label" x="500" y="749">Kuis</text>
+
+  <path class="flow-line" d="M500 778 V820" />
+
+  <rect class="node" x="380" y="820" width="240" height="55" />
+  <text class="label" x="500" y="848">Tampilkan Soal</text>
+
+  <path class="flow-line" d="M500 875 V900" />
+
+  <rect class="node" x="380" y="900" width="240" height="55" />
+  <text class="label" x="500" y="928">Pilih Jawaban</text>
+
+  <path class="flow-line" d="M500 955 V980" />
+
+  <rect class="node" x="380" y="980" width="240" height="55" />
+  <text class="label" x="500" y="1008">Periksa Jawaban</text>
+
+  <path class="flow-line" d="M500 1035 V1060" />
+
+  <rect class="node" x="360" y="1060" width="280" height="70" />
+  <text class="label" x="500" y="1082">
+    <tspan x="500" y="1082">Update Jadwal</tspan>
+    <tspan x="500" dy="26">Spaced Repetition</tspan>
+  </text>
+
+  <!-- Cabang flashcard -->
+  <rect class="node" x="720" y="720" width="260" height="58" />
+  <text class="label" x="850" y="749">Belajar Flashcard</text>
+
+  <path class="flow-line" d="M850 778 V820" />
+
+  <rect class="node" x="720" y="820" width="260" height="55" />
+  <text class="label" x="850" y="848">Tampilkan Kartu</text>
+
+  <path class="flow-line" d="M850 875 V900" />
+
+  <rect class="node" x="720" y="900" width="260" height="55" />
+  <text class="label" x="850" y="928">Lihat Arti &amp; Contoh</text>
+
+  <path class="flow-line" d="M850 955 V980" />
+
+  <rect class="node" x="720" y="980" width="260" height="55" />
+  <text class="label" x="850" y="1008">Beri Penilaian</text>
+
+  <path class="flow-line" d="M850 1035 V1060" />
+
+  <rect class="node" x="700" y="1060" width="300" height="70" />
+  <text class="label" x="850" y="1082">
+    <tspan x="850" y="1082">Update Jadwal</tspan>
+    <tspan x="850" dy="26">Spaced Repetition</tspan>
+  </text>
+
+  <!-- Hasil akhir -->
+  <path class="flow-line" d="M500 1130 V1210" />
+  <path class="flow-line" d="M850 1130 V1210" />
+
+  <rect class="node" x="360" y="1210" width="640" height="70" />
+  <text class="label" x="500" y="1232">
+    <tspan x="500" y="1232">Simpan Progress</tspan>
+    <tspan x="500" dy="26">Belajar</tspan>
+  </text>
+
+  <path class="flow-line" d="M500 1280 V1320" />
+
+  <rect class="node" x="350" y="1320" width="300" height="55" />
+  <text class="label" x="500" y="1348">Tampilkan Hasil / Progress</text>
+
+  <path class="flow-line" d="M500 1375 V1420" />
+
+  <rect class="node" x="390" y="1420" width="220" height="55" rx="27.5" />
+  <text class="label" x="500" y="1448">Selesai</text>
+</svg>

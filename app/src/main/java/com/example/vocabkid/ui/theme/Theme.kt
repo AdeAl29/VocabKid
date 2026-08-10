@@ -2,6 +2,7 @@ package com.example.vocabkid.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -22,14 +23,37 @@ private val VocabKidColors = lightColorScheme(
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFE1E6FF),
     onTertiaryContainer = Color(0xFF17235B),
-    background = Color(0xFFFBFCF8),
+    background = Color(0xFFEAF8FF),
     onBackground = Color(0xFF1A1C1B),
-    surface = Color.White,
+    surface = Color(0xFFFFFEFC),
     onSurface = Color(0xFF1A1C1B),
     surfaceVariant = Color(0xFFE8F0EE),
     onSurfaceVariant = Color(0xFF41504D),
     error = Color(0xFFBA1A1A),
     onError = Color.White
+)
+
+private val VocabKidDarkColors = darkColorScheme(
+    primary = Color(0xFF7ADBD0),
+    onPrimary = Color(0xFF003B35),
+    primaryContainer = Color(0xFF07564E),
+    onPrimaryContainer = Color(0xFFD7F3EF),
+    secondary = Color(0xFFFFC782),
+    onSecondary = Color(0xFF472A00),
+    secondaryContainer = Color(0xFF6D4200),
+    onSecondaryContainer = Color(0xFFFFE5BD),
+    tertiary = Color(0xFFB9C3FF),
+    onTertiary = Color(0xFF18245D),
+    tertiaryContainer = Color(0xFF3346A5),
+    onTertiaryContainer = Color(0xFFE1E6FF),
+    background = Color(0xFF091631),
+    onBackground = Color(0xFFE2E7E5),
+    surface = Color(0xFF151E2E),
+    onSurface = Color(0xFFE2E7E5),
+    surfaceVariant = Color(0xFF2D405B),
+    onSurfaceVariant = Color(0xFFC1CECA),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005)
 )
 
 private val VocabKidTypography = Typography(
@@ -78,9 +102,12 @@ private val VocabKidTypography = Typography(
 )
 
 @Composable
-fun VocabKidTheme(content: @Composable () -> Unit) {
+fun VocabKidTheme(
+    darkTheme: Boolean = false,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
-        colorScheme = VocabKidColors,
+        colorScheme = if (darkTheme) VocabKidDarkColors else VocabKidColors,
         typography = VocabKidTypography,
         content = content
     )

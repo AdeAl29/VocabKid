@@ -1,5 +1,6 @@
 package com.example.vocabkid.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -15,7 +16,12 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["wordId"], unique = true)]
+    indices = [
+        Index(value = ["wordId"], unique = true),
+        Index(value = ["dueDate"]),
+        Index(value = ["status"]),
+        Index(value = ["lastReviewedDate"])
+    ]
 )
 data class WordProgressEntity(
     @PrimaryKey(autoGenerate = true)
@@ -28,5 +34,7 @@ data class WordProgressEntity(
     val lastReviewedDate: Long? = null,
     val correctCount: Int = 0,
     val wrongCount: Int = 0,
-    val status: String = "Baru"
+    val status: String = "Baru",
+    @ColumnInfo(defaultValue = "0")
+    val updatedAt: Long = System.currentTimeMillis()
 )

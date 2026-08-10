@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.vocabkid.data.local.entity.StudentEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -20,4 +21,10 @@ interface StudentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudent(student: StudentEntity): Long
+
+    @Update
+    suspend fun updateStudent(student: StudentEntity)
+
+    @Query("SELECT COUNT(*) FROM students")
+    suspend fun countStudents(): Int
 }

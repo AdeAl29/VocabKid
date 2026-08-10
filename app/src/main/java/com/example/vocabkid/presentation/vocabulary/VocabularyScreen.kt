@@ -22,10 +22,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,19 +38,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vocabkid.data.local.entity.WordEntity
 import com.example.vocabkid.data.local.entity.WordWithProgressEntity
+import com.example.vocabkid.presentation.components.CategoryChip
+import com.example.vocabkid.presentation.components.CategoryFilterChip
 import com.example.vocabkid.presentation.components.EmptyMessage
 import com.example.vocabkid.presentation.components.KidTopBar
+import com.example.vocabkid.presentation.components.StatusChip
+import com.example.vocabkid.presentation.components.categoryThemeContainerColor
+import com.example.vocabkid.presentation.components.categoryThemeContentColor
 
 @Composable
 fun VocabularyScreen(
     viewModel: VocabularyViewModel,
-    onBackClick: () -> Unit,
+    bottomContentPadding: Dp = 0.dp,
+    onBackClick: (() -> Unit)? = null,
     onDetailClick: (Long) -> Unit
 ) {
     val words by viewModel.words.collectAsStateWithLifecycle()
@@ -80,6 +87,8 @@ fun VocabularyScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             KidTopBar(
                 title = "Daftar Kosakata",
@@ -87,7 +96,10 @@ fun VocabularyScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                modifier = Modifier.padding(bottom = bottomContentPadding)
+            ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Tambah kosakata"
@@ -99,18 +111,21 @@ fun VocabularyScreen(
             EmptyMessage(
                 title = "Belum ada kosakata",
                 message = "Tambahkan kosakata baru untuk mulai belajar.",
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp)
+                    .padding(bottom = bottomContentPadding)
             )
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 18.dp),
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(
-                    top = 12.dp,
-                    bottom = 96.dp
+                    top = 4.dp,
+                    bottom = 96.dp + bottomContentPadding
                 )
             ) {
                 item {
@@ -238,21 +253,21 @@ private fun VocabularySearchHeader(
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
-                FilterChip(
+                CategoryFilterChip(
+                    category = "Semua",
                     selected = selectedCategory == null,
-                    onClick = { onCategoryChange(null) },
-                    label = { Text("Semua") }
+                    onClick = { onCategoryChange(null) }
                 )
             }
             items(categories, key = { it }) { category ->
-                FilterChip(
+                CategoryFilterChip(
+                    category = category,
                     selected = selectedCategory == category,
                     onClick = {
                         onCategoryChange(
                             if (selectedCategory == category) null else category
                         )
-                    },
-                    label = { Text(category) }
+                    }
                 )
             }
         }
@@ -272,11 +287,15 @@ private fun VocabularyItemCard(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
+    val categoryContainerColor = categoryThemeContainerColor(item.word.category)
+    val categoryContentColor = categoryThemeContentColor(item.word.category)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = categoryContainerColor,
+            contentColor = categoryContentColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -292,12 +311,13 @@ private fun VocabularyItemCard(
                     Text(
                         text = item.word.englishWord,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = categoryContentColor
                     )
                     Text(
                         text = item.word.indonesianMeaning,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = categoryContentColor.copy(alpha = 0.76f)
                     )
                 }
                 Row {
@@ -321,14 +341,17 @@ private fun VocabularyItemCard(
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = onDetailClick,
-                    label = { Text(item.word.category) }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CategoryChip(
+                    category = item.word.category,
+                    onClick = onDetailClick
                 )
-                AssistChip(
-                    onClick = onDetailClick,
-                    label = { Text(item.progress?.status ?: "Baru") }
+                StatusChip(
+                    status = item.progress?.status ?: "Baru",
+                    onClick = onDetailClick
                 )
             }
         }

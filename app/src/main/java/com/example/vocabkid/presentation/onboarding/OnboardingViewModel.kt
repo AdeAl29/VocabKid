@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabkid.data.repository.VocabKidRepository
+import com.example.vocabkid.domain.model.StudentAvatar
 import kotlinx.coroutines.launch
 
 class OnboardingViewModel(
@@ -15,6 +16,9 @@ class OnboardingViewModel(
         private set
 
     var grade by mutableStateOf(3)
+        private set
+
+    var avatar by mutableStateOf(StudentAvatar.SISWA)
         private set
 
     var errorMessage by mutableStateOf<String?>(null)
@@ -32,6 +36,11 @@ class OnboardingViewModel(
         grade = value
     }
 
+    fun updateAvatar(value: StudentAvatar) {
+        avatar = value
+        errorMessage = null
+    }
+
     fun saveStudent(onSaved: () -> Unit) {
         val cleanName = name.trim()
         if (cleanName.isBlank()) {
@@ -41,7 +50,7 @@ class OnboardingViewModel(
 
         viewModelScope.launch {
             isSaving = true
-            repository.saveStudent(cleanName, grade)
+            repository.saveStudent(cleanName, grade, avatar)
             isSaving = false
             onSaved()
         }

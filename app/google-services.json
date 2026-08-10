@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "458197802998",
+    "project_id": "vocabkid-10f2b",
+    "storage_bucket": "vocabkid-10f2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458197802998:android:a60d71ee14b8fd5742b1d7",
+        "android_client_info": {
+          "package_name": "com.example.vocabkid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK7NSBvOvL62mkRofKdbpMB459WI6o43I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
