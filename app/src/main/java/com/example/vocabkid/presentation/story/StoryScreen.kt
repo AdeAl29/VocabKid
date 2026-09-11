@@ -26,6 +26,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -98,6 +99,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -564,15 +568,28 @@ private fun ChapterCard(
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    // Chapter Canvas illustration background
-                    ChapterCardIllustration(
-                        chapterId = chapter.id,
-                        gradientStart = Color(chapter.gradientStart),
-                        gradientEnd = Color(chapter.gradientEnd),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                    )
+                    // Chapter illustration background (HD cover image with Canvas fallback)
+                    val context = LocalContext.current
+                    val coverRes = storyChapterCoverDrawableRes(chapter.id, context)
+                    if (coverRes != null) {
+                        Image(
+                            painter = painterResource(id = coverRes),
+                            contentDescription = chapter.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        ChapterCardIllustration(
+                            chapterId = chapter.id,
+                            gradientStart = Color(chapter.gradientStart),
+                            gradientEnd = Color(chapter.gradientEnd),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                        )
+                    }
 
                     // Bottom gradient overlay for text readability
                     Box(
@@ -1334,7 +1351,7 @@ private fun CinematicNarrationCard(
 @Composable
 private fun CinematicSceneIllustration(
     chapterId: Int,
-    @Suppress("UNUSED_PARAMETER") sceneId: Int,
+    sceneId: Int,
     sceneIndex: Int,
     modifier: Modifier = Modifier
 ) {
@@ -1345,12 +1362,19 @@ private fun CinematicSceneIllustration(
         label = "sceneT"
     )
 
-    Canvas(modifier = modifier) {
-        when (chapterId) {
-            1 -> drawChapter1Scene(sceneIndex, t)
-            2 -> drawChapter2Scene(sceneIndex, t)
-            3 -> drawChapter3Scene(sceneIndex, t)
-            else -> drawGenericScene(t)
+    StorySceneIllustrationImage(
+        chapterId = chapterId,
+        sceneId = sceneId,
+        sceneIndex = sceneIndex,
+        modifier = modifier
+    ) {
+        Canvas(modifier = modifier) {
+            when (chapterId) {
+                1 -> drawChapter1Scene(sceneIndex, t)
+                2 -> drawChapter2Scene(sceneIndex, t)
+                3 -> drawChapter3Scene(sceneIndex, t)
+                else -> drawGenericScene(t)
+            }
         }
     }
 }

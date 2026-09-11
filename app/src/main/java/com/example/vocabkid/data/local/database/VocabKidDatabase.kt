@@ -30,7 +30,7 @@ import com.example.vocabkid.data.local.entity.WordProgressEntity
         ConversationScenarioProgressEntity::class,
         ConversationChoiceHistoryEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class VocabKidDatabase : RoomDatabase() {
@@ -52,7 +52,7 @@ abstract class VocabKidDatabase : RoomDatabase() {
                     VocabKidDatabase::class.java,
                     "vocabkid.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                 INSTANCE = instance
                 instance
@@ -197,6 +197,14 @@ abstract class VocabKidDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_conversation_choice_history_scenarioId ON conversation_choice_history(scenarioId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_conversation_choice_history_sceneId ON conversation_choice_history(sceneId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_conversation_choice_history_selectedAt ON conversation_choice_history(selectedAt)")
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE students ADD COLUMN nis TEXT NOT NULL DEFAULT ''"
+                )
             }
         }
     }

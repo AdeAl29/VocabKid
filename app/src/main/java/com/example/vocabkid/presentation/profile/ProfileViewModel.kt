@@ -23,6 +23,9 @@ class ProfileViewModel(
     var grade by mutableStateOf(3)
         private set
 
+    var nis by mutableStateOf("")
+        private set
+
     var avatar by mutableStateOf(StudentAvatar.SISWA)
         private set
 
@@ -43,6 +46,7 @@ class ProfileViewModel(
                 if (currentStudent != null && loadedStudentId != currentStudent.id) {
                     loadedStudentId = currentStudent.id
                     name = currentStudent.name
+                    nis = currentStudent.nis
                     grade = currentStudent.grade
                     avatar = StudentAvatar.fromId(currentStudent.avatar)
                     errorMessage = null
@@ -59,6 +63,12 @@ class ProfileViewModel(
 
     fun updateGrade(value: Int) {
         grade = value
+        errorMessage = null
+        successMessage = null
+    }
+
+    fun updateNis(value: String) {
+        nis = value
         errorMessage = null
         successMessage = null
     }
@@ -80,7 +90,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             isSaving = true
             try {
-                repository.saveStudent(cleanName, grade, avatar)
+                repository.saveStudent(cleanName, grade, avatar, nis = nis.trim())
                 errorMessage = null
                 successMessage = "Profil berhasil disimpan."
             } catch (exception: Exception) {

@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
@@ -55,6 +56,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -103,6 +105,7 @@ fun ProfileScreen(
         ) {
             ProfileHero(
                 name = displayName,
+                nis = viewModel.nis,
                 grade = viewModel.grade,
                 avatar = viewModel.avatar,
                 onAvatarClick = { isAvatarSheetOpen = true }
@@ -135,6 +138,23 @@ fun ProfileScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Person,
+                                contentDescription = null
+                            )
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = viewModel.nis,
+                        onValueChange = { value -> viewModel.updateNis(value.filter { it.isDigit() }) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("NIS (Nomor Induk Siswa)") },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Badge,
                                 contentDescription = null
                             )
                         }
@@ -236,6 +256,7 @@ fun ProfileScreen(
 @Composable
 private fun ProfileHero(
     name: String,
+    nis: String,
     grade: Int,
     avatar: StudentAvatar,
     onAvatarClick: () -> Unit
@@ -342,7 +363,7 @@ private fun ProfileHero(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "Kelas $grade SD",
+                text = if (nis.isNotBlank()) "NIS: $nis • Kelas $grade SD" else "Kelas $grade SD",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

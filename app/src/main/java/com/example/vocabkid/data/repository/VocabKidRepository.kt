@@ -138,7 +138,8 @@ class VocabKidRepository(
     suspend fun saveStudent(
         name: String,
         grade: Int,
-        avatar: StudentAvatar = StudentAvatar.SISWA
+        avatar: StudentAvatar = StudentAvatar.SISWA,
+        nis: String = ""
     ) {
         val now = System.currentTimeMillis()
         database.withTransaction {
@@ -146,6 +147,7 @@ class VocabKidRepository(
             studentDao.insertStudent(
                 StudentEntity(
                     name = name.trim().ifBlank { DEFAULT_STUDENT_NAME },
+                    nis = nis.trim(),
                     grade = grade.coerceIn(MIN_GRADE, MAX_GRADE),
                     avatar = avatar.id,
                     createdAt = now,

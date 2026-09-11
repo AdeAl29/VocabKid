@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -77,12 +78,13 @@ fun AuthScreen(
     errorMessage: String?,
     successMessage: String?,
     onLoginSubmit: (String, String) -> Unit,
-    onRegisterSubmit: (String, String, String, Int) -> Unit,
+    onRegisterSubmit: (String, String, String, String, Int) -> Unit,
     onResetPasswordSubmit: (String) -> Unit
 ) {
     var mode by rememberSaveable { mutableStateOf(AuthMode.Login) }
     var loginIdentity by rememberSaveable { mutableStateOf("") }
     var registerName by rememberSaveable { mutableStateOf("") }
+    var registerNis by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var grade by rememberSaveable { mutableIntStateOf(3) }
@@ -136,6 +138,8 @@ fun AuthScreen(
                 onLoginIdentityChange = { loginIdentity = it },
                 registerName = registerName,
                 onRegisterNameChange = { registerName = it },
+                registerNis = registerNis,
+                onRegisterNisChange = { registerNis = it },
                 email = email,
                 onEmailChange = { email = it },
                 password = password,
@@ -153,7 +157,7 @@ fun AuthScreen(
                 onSubmit = {
                     when (mode) {
                         AuthMode.Login -> onLoginSubmit(loginIdentity, password)
-                        AuthMode.Register -> onRegisterSubmit(registerName, email, password, grade)
+                        AuthMode.Register -> onRegisterSubmit(registerName, registerNis, email, password, grade)
                     }
                 }
             )
@@ -169,6 +173,8 @@ private fun AuthPanel(
     onLoginIdentityChange: (String) -> Unit,
     registerName: String,
     onRegisterNameChange: (String) -> Unit,
+    registerNis: String,
+    onRegisterNisChange: (String) -> Unit,
     email: String,
     onEmailChange: (String) -> Unit,
     password: String,
@@ -215,6 +221,8 @@ private fun AuthPanel(
                     AuthMode.Register -> RegisterFields(
                         name = registerName,
                         onNameChange = onRegisterNameChange,
+                        nis = registerNis,
+                        onNisChange = onRegisterNisChange,
                         email = email,
                         onEmailChange = onEmailChange,
                         password = password,
@@ -557,6 +565,8 @@ private fun ResetPasswordDialog(
 private fun RegisterFields(
     name: String,
     onNameChange: (String) -> Unit,
+    nis: String,
+    onNisChange: (String) -> Unit,
     email: String,
     onEmailChange: (String) -> Unit,
     password: String,
@@ -579,6 +589,20 @@ private fun RegisterFields(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Person,
+                    contentDescription = null
+                )
+            }
+        )
+        OutlinedTextField(
+            value = nis,
+            onValueChange = { value -> onNisChange(value.filter { it.isDigit() }) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("NIS (Nomor Induk Siswa)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Badge,
                     contentDescription = null
                 )
             }

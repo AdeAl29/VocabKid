@@ -65,6 +65,7 @@ class AuthViewModel(
 
     fun register(
         name: String,
+        nis: String,
         email: String,
         password: String,
         grade: Int,
@@ -72,6 +73,7 @@ class AuthViewModel(
     ) {
         val cleanName = name.trim()
         val cleanEmail = email.trim()
+        val cleanNis = nis.trim()
         successMessage = null
 
         if (cleanName.isBlank()) {
@@ -97,7 +99,8 @@ class AuthViewModel(
 
                 repository.saveStudent(
                     name = cleanName,
-                    grade = grade
+                    grade = grade,
+                    nis = cleanNis
                 )
                 onSuccess()
             } catch (exception: Exception) {

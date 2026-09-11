@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -30,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +53,7 @@ import com.example.vocabkid.data.local.entity.WordEntity
 import com.example.vocabkid.data.local.entity.WordWithProgressEntity
 import com.example.vocabkid.presentation.components.CategoryChip
 import com.example.vocabkid.presentation.components.CategoryFilterChip
+import com.example.vocabkid.presentation.components.CategoryIllustrationImage
 import com.example.vocabkid.presentation.components.EmptyMessage
 import com.example.vocabkid.presentation.components.KidTopBar
 import com.example.vocabkid.presentation.components.StatusChip
@@ -305,20 +310,43 @@ private fun VocabularyItemCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = item.word.englishWord,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = categoryContentColor
-                    )
-                    Text(
-                        text = item.word.indonesianMeaning,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = categoryContentColor.copy(alpha = 0.76f)
-                    )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 4.dp,
+                        color = Color.White.copy(alpha = 0.4f)
+                    ) {
+                        CategoryIllustrationImage(
+                            category = item.word.category,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(2.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            contentScale = ContentScale.Crop,
+                            fallbackIconSize = 24.dp
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = item.word.englishWord,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = categoryContentColor
+                        )
+                        Text(
+                            text = item.word.indonesianMeaning,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = categoryContentColor.copy(alpha = 0.76f)
+                        )
+                    }
                 }
                 Row {
                     IconButton(onClick = onDetailClick) {

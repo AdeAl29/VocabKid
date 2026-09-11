@@ -195,8 +195,8 @@ fun VocabKidNavHost(
                                     }
                                 }
                             },
-                            onRegisterSubmit = { name, email, password, grade ->
-                                viewModel.register(name, email, password, grade) {
+                            onRegisterSubmit = { name, nis, email, password, grade ->
+                                viewModel.register(name, nis, email, password, grade) {
                                     selectedMainRoute = Routes.HOME
                                     navController.navigate(Routes.MAIN_TABS) {
                                         popUpTo(Routes.AUTH) { inclusive = true }

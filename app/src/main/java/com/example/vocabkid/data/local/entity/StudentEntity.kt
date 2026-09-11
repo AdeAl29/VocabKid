@@ -13,6 +13,8 @@ data class StudentEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
+    @ColumnInfo(defaultValue = "''")
+    val nis: String = "",
     val grade: Int,
     val avatar: String = "siswa",
     @ColumnInfo(defaultValue = "0")

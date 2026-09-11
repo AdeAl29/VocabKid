@@ -159,7 +159,8 @@ private fun HomeProfileSummary(
     modifier: Modifier = Modifier
 ) {
     val name = student?.name?.takeIf { it.isNotBlank() } ?: "Siswa"
-    val gradeText = student?.grade?.let { "Kelas $it SD" } ?: "Kelas - SD"
+    val nisText = student?.nis?.takeIf { it.isNotBlank() }?.let { "NIS: $it • " } ?: ""
+    val gradeText = student?.grade?.let { "${nisText}Kelas $it SD" } ?: "Kelas - SD"
     val practiceText = if (dueToday > 0) {
         "$dueToday kata"
     } else {

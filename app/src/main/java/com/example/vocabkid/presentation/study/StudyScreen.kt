@@ -59,13 +59,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import com.example.vocabkid.audio.rememberSoundEffectPlayer
 import com.example.vocabkid.presentation.components.CategoryChip
+import com.example.vocabkid.presentation.components.CategoryIllustrationImage
 import com.example.vocabkid.presentation.components.EnglishTextSpeaker
 import com.example.vocabkid.presentation.components.EmptyMessage
 import com.example.vocabkid.presentation.components.KidTopBar
@@ -253,6 +257,7 @@ private fun FlippableFlashcard(
                 )
                 if (isBack) {
                     FlashcardBackFace(
+                        category = category,
                         englishWord = englishWord,
                         indonesianMeaning = indonesianMeaning,
                         exampleSentence = exampleSentence,
@@ -261,6 +266,7 @@ private fun FlippableFlashcard(
                     )
                 } else {
                     FlashcardFrontFace(
+                        category = category,
                         englishWord = englishWord,
                         speaker = speaker,
                         contentColor = categoryContentColor
@@ -279,8 +285,8 @@ private fun BoxScope.FlashcardCornerIllustrations(
 ) {
     val primaryIcon = categoryThemeIcon(category)
     val secondaryIcon = flashcardAccentIconFor(category)
-    val softTint = contentColor.copy(alpha = 0.13f)
-    val softerTint = contentColor.copy(alpha = 0.09f)
+    val softTint = contentColor.copy(alpha = 0.06f)
+    val softerTint = contentColor.copy(alpha = 0.04f)
 
     Icon(
         imageVector = primaryIcon,
@@ -313,7 +319,7 @@ private fun BoxScope.FlashcardCornerIllustrations(
     Icon(
         imageVector = primaryIcon,
         contentDescription = null,
-        tint = contentColor.copy(alpha = 0.07f),
+        tint = contentColor.copy(alpha = 0.03f),
         modifier = Modifier
             .align(Alignment.BottomEnd)
             .offset(x = (-18).dp, y = (-18).dp)
@@ -379,6 +385,7 @@ private fun FlashcardStatusHeader(
 
 @Composable
 private fun FlashcardFrontFace(
+    category: String,
     englishWord: String,
     speaker: EnglishTextSpeaker,
     contentColor: Color
@@ -386,8 +393,24 @@ private fun FlashcardFrontFace(
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
+        Surface(
+            modifier = Modifier.size(140.dp),
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 8.dp,
+            color = Color.White.copy(alpha = 0.5f)
+        ) {
+            CategoryIllustrationImage(
+                category = category,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(RoundedCornerShape(22.dp)),
+                contentScale = ContentScale.Crop,
+                fallbackIconSize = 56.dp
+            )
+        }
         EnglishWordWithSpeaker(
             englishWord = englishWord,
             speaker = speaker,
@@ -400,6 +423,7 @@ private fun FlashcardFrontFace(
 
 @Composable
 private fun FlashcardBackFace(
+    @Suppress("UNUSED_PARAMETER") category: String,
     englishWord: String,
     indonesianMeaning: String,
     exampleSentence: String,
@@ -414,22 +438,29 @@ private fun FlashcardBackFace(
         EnglishWordWithSpeaker(
             englishWord = englishWord,
             speaker = speaker,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
             color = contentColor,
         )
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = contentColor.copy(alpha = 0.08f)
+        ) {
+            Text(
+                text = indonesianMeaning,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = contentColor
+            )
+        }
         Text(
-            text = indonesianMeaning,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = contentColor
-        )
-        Text(
-            text = exampleSentence,
+            text = "\"$exampleSentence\"",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = contentColor
+            color = contentColor.copy(alpha = 0.8f),
+            fontStyle = FontStyle.Italic
         )
     }
 }
