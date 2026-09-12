@@ -59,6 +59,9 @@ class VocabKidViewModelFactory(
             modelClass.isAssignableFrom(ChatAssistantViewModel::class.java) -> {
                 ChatAssistantViewModel() as T
             }
+            modelClass.isAssignableFrom(com.example.vocabkid.presentation.arcade.ArcadeViewModel::class.java) -> {
+                com.example.vocabkid.presentation.arcade.ArcadeViewModel(repository) as T
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }

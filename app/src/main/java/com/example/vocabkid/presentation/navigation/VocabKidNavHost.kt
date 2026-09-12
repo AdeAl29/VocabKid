@@ -59,6 +59,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.vocabkid.data.repository.VocabKidRepository
+import com.example.vocabkid.presentation.arcade.ArcadeScreen
+import com.example.vocabkid.presentation.arcade.ArcadeViewModel
 import com.example.vocabkid.presentation.auth.AuthScreen
 import com.example.vocabkid.presentation.auth.AuthViewModel
 import com.example.vocabkid.presentation.conversation.ConversationScreen
@@ -133,6 +135,11 @@ fun VocabKidNavHost(
     }
     val navigateToConversation: () -> Unit = {
         navController.navigate(Routes.CONVERSATION) {
+            launchSingleTop = true
+        }
+    }
+    val navigateToArcade: () -> Unit = {
+        navController.navigate(Routes.ARCADE) {
             launchSingleTop = true
         }
     }
@@ -243,7 +250,8 @@ fun VocabKidNavHost(
                             onVocabularyDetailClick = { wordId ->
                                 navController.navigate(Routes.vocabularyDetail(wordId))
                             },
-                            onConversationClick = navigateToConversation
+                            onConversationClick = navigateToConversation,
+                            onArcadeClick = navigateToArcade
                         )
                     }
 
@@ -294,6 +302,14 @@ fun VocabKidNavHost(
                             viewModel = viewModel,
                             onBackClick = { navController.popBackStack() },
                             onLogoutClick = requestLogout
+                        )
+                    }
+
+                    composable(Routes.ARCADE) {
+                        val viewModel: ArcadeViewModel = viewModel(factory = factory)
+                        ArcadeScreen(
+                            viewModel = viewModel,
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
                 }

@@ -14,6 +14,7 @@ object Routes {
     const val CONVERSATION = "conversation"
     const val PRONUNCIATION = "pronunciation"
     const val STORY = "story"
+    const val ARCADE = "arcade"
 
     fun vocabularyDetail(wordId: Long): String = "vocabulary_detail/$wordId"
 }

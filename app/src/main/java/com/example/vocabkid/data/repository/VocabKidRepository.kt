@@ -59,6 +59,10 @@ class VocabKidRepository(
         return wordDao.observeDifficultWords(limit)
     }
 
+    suspend fun getAllWords(): List<WordEntity> {
+        return wordDao.getAllWords()
+    }
+
     fun observeConversationLines(): Flow<List<ConversationLineEntity>> {
         return conversationLineDao.observeConversationLines()
     }

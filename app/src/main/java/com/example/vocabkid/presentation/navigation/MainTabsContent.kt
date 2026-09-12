@@ -32,7 +32,8 @@ fun MainTabsContent(
     onProfileClick: () -> Unit,
     onStoryClick: () -> Unit,
     onVocabularyDetailClick: (Long) -> Unit,
-    onConversationClick: () -> Unit
+    onConversationClick: () -> Unit,
+    onArcadeClick: () -> Unit = {}
 ) {
     BackHandler(enabled = selectedRoute != Routes.HOME) {
         onSelectedRouteChange(Routes.HOME)
@@ -90,7 +91,8 @@ fun MainTabsContent(
                         onProfileClick = onProfileClick,
                         onStoryClick = onStoryClick,
                         onStudyClick = { onSelectedRouteChange(Routes.STUDY) },
-                        onConversationClick = onConversationClick
+                        onConversationClick = onConversationClick,
+                        onArcadeClick = onArcadeClick
                     )
                 }
             }

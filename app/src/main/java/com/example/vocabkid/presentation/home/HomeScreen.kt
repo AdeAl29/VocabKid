@@ -49,6 +49,7 @@ fun HomeScreen(
     onStoryClick: () -> Unit,
     onStudyClick: () -> Unit,
     onConversationClick: () -> Unit,
+    onArcadeClick: () -> Unit = {},
     bottomContentPadding: Dp = 0.dp
 ) {
     val student by viewModel.student.collectAsStateWithLifecycle()
@@ -98,6 +99,7 @@ fun HomeScreen(
                     onPronunciationClick = onPronunciationClick,
                     onStoryClick = onStoryClick,
                     onConversationClick = onConversationClick,
+                    onArcadeClick = onArcadeClick,
                     modifier = Modifier.align(Alignment.TopEnd)
                 )
             }

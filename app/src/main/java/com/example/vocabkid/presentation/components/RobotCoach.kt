@@ -31,7 +31,7 @@ import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -103,13 +103,10 @@ fun RobotCoach(
     onPronunciationClick: () -> Unit,
     onStoryClick: () -> Unit,
     onConversationClick: () -> Unit,
+    onArcadeClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var persona by remember { mutableStateOf(RobotPersona.ENGLISH) }
-    val messages = when (persona) {
-        RobotPersona.ENGLISH -> englishRobotMessages
-        RobotPersona.INDONESIA -> indonesianRobotMessages
-    }
+    val messages = englishRobotMessages
     var messageIndex by remember { mutableStateOf(Random.nextInt(messages.size)) }
     var showBubble by remember { mutableStateOf(false) }
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -124,11 +121,7 @@ fun RobotCoach(
         label = "robotCoachBob"
     )
 
-    LaunchedEffect(persona) {
-        messageIndex = Random.nextInt(messages.size)
-    }
-
-    LaunchedEffect(isMenuOpen, persona) {
+    LaunchedEffect(isMenuOpen) {
         if (isMenuOpen) {
             showBubble = false
             return@LaunchedEffect
@@ -168,7 +161,7 @@ fun RobotCoach(
             contentAlignment = Alignment.Center
         ) {
             RobotAvatar(
-                persona = persona,
+                persona = RobotPersona.ENGLISH,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { isMenuOpen = !isMenuOpen }
@@ -189,13 +182,9 @@ fun RobotCoach(
                     isMenuOpen = false
                     onConversationClick()
                 },
-                persona = persona,
-                onSwitchPersona = {
-                    persona = if (persona == RobotPersona.ENGLISH) {
-                        RobotPersona.INDONESIA
-                    } else {
-                        RobotPersona.ENGLISH
-                    }
+                onArcadeClick = {
+                    isMenuOpen = false
+                    onArcadeClick()
                 },
             )
         }
@@ -210,8 +199,7 @@ private fun RobotAssistiveMenu(
     onPronunciationClick: () -> Unit,
     onStoryClick: () -> Unit,
     onConversationClick: () -> Unit,
-    persona: RobotPersona,
-    onSwitchPersona: () -> Unit
+    onArcadeClick: () -> Unit
 ) {
     if (!visible) return
 
@@ -278,13 +266,9 @@ private fun RobotAssistiveMenu(
                     )
                 )
                 RobotMenuButton(
-                    icon = Icons.Default.SwapHoriz,
-                    contentDescription = if (persona == RobotPersona.ENGLISH) {
-                        "Ganti ke robot Bahasa Indonesia"
-                    } else {
-                        "Ganti ke robot English"
-                    },
-                    onClick = onSwitchPersona,
+                    icon = Icons.Default.SportsEsports,
+                    contentDescription = "Buka Arcade Mini-Games",
+                    onClick = onArcadeClick,
                     modifier = Modifier.arcOffset(
                         centerX = arcCenterX,
                         centerY = arcCenterY,
