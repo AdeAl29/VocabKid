@@ -67,7 +67,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun KidTopBar(
     title: String,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    actions: @Composable (androidx.compose.foundation.layout.RowScope.() -> Unit) = {}
 ) {
     TopAppBar(
         title = {
@@ -86,11 +87,13 @@ fun KidTopBar(
                 }
             }
         },
+        actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
             titleContentColor = MaterialTheme.colorScheme.onBackground,
-            navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+            navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+            actionIconContentColor = MaterialTheme.colorScheme.onBackground
         )
     )
 }

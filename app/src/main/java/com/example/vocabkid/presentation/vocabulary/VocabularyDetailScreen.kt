@@ -6,25 +6,38 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.vocabkid.data.local.entity.WordEntity
 import com.example.vocabkid.domain.model.DateUtils
 import com.example.vocabkid.presentation.components.CategoryChip
 import com.example.vocabkid.presentation.components.CategoryIllustrationImage
@@ -42,6 +55,8 @@ fun VocabularyDetailScreen(
     onBackClick: () -> Unit
 ) {
     val detail by viewModel.observeWord(wordId).collectAsStateWithLifecycle(initialValue = null)
+    var editingWord by remember { mutableStateOf<WordEntity?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -49,7 +64,23 @@ fun VocabularyDetailScreen(
         topBar = {
             KidTopBar(
                 title = "Detail Kosakata",
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                actions = {
+                    detail?.word?.let {
+                        IconButton(onClick = { editingWord = it }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit kosakata"
+                            )
+                        }
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Hapus kosakata"
+                            )
+                        }
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -151,6 +182,53 @@ fun VocabularyDetailScreen(
             }
         }
     }
+
+    // Edit dialog
+    editingWord?.let { word ->
+        DetailWordFormDialog(
+            title = "Edit Kosakata",
+            initialWord = word,
+            onDismiss = { editingWord = null },
+            onSave = { english, meaning, category, example ->
+                viewModel.updateWord(
+                    word.copy(
+                        englishWord = english.trim(),
+                        indonesianMeaning = meaning.trim(),
+                        category = category.trim(),
+                        exampleSentence = example.trim()
+                    )
+                )
+                editingWord = null
+            }
+        )
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        detail?.word?.let { word ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Hapus kosakata?") },
+                text = { Text("Kosakata \"${word.englishWord}\" akan dihapus dari daftar belajar.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteWord(word)
+                            showDeleteDialog = false
+                            onBackClick()
+                        }
+                    ) {
+                        Text("Hapus")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Batal")
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -181,4 +259,84 @@ private fun DetailRow(
             )
         }
     }
+}
+
+@Composable
+private fun DetailWordFormDialog(
+    title: String,
+    initialWord: WordEntity,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String, String) -> Unit
+) {
+    var englishWord by remember { mutableStateOf(initialWord.englishWord) }
+    var indonesianMeaning by remember { mutableStateOf(initialWord.indonesianMeaning) }
+    var category by remember { mutableStateOf(initialWord.category) }
+    var exampleSentence by remember { mutableStateOf(initialWord.exampleSentence) }
+    val canSave = englishWord.isNotBlank() &&
+        indonesianMeaning.isNotBlank() &&
+        category.isNotBlank() &&
+        exampleSentence.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 520.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = englishWord,
+                    onValueChange = { englishWord = it },
+                    label = { Text("Kata Inggris") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = indonesianMeaning,
+                    onValueChange = { indonesianMeaning = it },
+                    label = { Text("Arti Indonesia") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Kategori") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = exampleSentence,
+                    onValueChange = { exampleSentence = it },
+                    label = { Text("Contoh kalimat") },
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSave(
+                        englishWord,
+                        indonesianMeaning,
+                        category,
+                        exampleSentence
+                    )
+                },
+                enabled = canSave
+            ) {
+                Text("Simpan")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Batal")
+            }
+        }
+    )
 }

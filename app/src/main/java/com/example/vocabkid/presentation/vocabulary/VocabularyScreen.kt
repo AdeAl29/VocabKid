@@ -1,6 +1,11 @@
 package com.example.vocabkid.presentation.vocabulary
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,11 +27,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,9 +39,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +65,11 @@ import com.example.vocabkid.presentation.components.CategoryFilterChip
 import com.example.vocabkid.presentation.components.CategoryIllustrationImage
 import com.example.vocabkid.presentation.components.EmptyMessage
 import com.example.vocabkid.presentation.components.KidTopBar
+import com.example.vocabkid.presentation.components.SpeakerIconButton
 import com.example.vocabkid.presentation.components.StatusChip
 import com.example.vocabkid.presentation.components.categoryThemeContainerColor
 import com.example.vocabkid.presentation.components.categoryThemeContentColor
+import com.example.vocabkid.presentation.components.rememberEnglishTextSpeaker
 
 @Composable
 fun VocabularyScreen(
@@ -73,6 +84,7 @@ fun VocabularyScreen(
     var deletingWord by remember { mutableStateOf<WordEntity?>(null) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+    val speaker = rememberEnglishTextSpeaker()
 
     val categories = remember(words) {
         words.map { it.word.category }.distinct().sorted()
@@ -154,8 +166,9 @@ fun VocabularyScreen(
                     }
                 } else {
                     items(filteredWords, key = { it.word.id }) { item ->
-                        VocabularyItemCard(
+                        SwipeableVocabularyItem(
                             item = item,
+                            speaker = speaker,
                             onDetailClick = { onDetailClick(item.word.id) },
                             onEditClick = { editingWord = item.word },
                             onDeleteClick = { deletingWord = item.word }
@@ -285,19 +298,123 @@ private fun VocabularySearchHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VocabularyItemCard(
+private fun SwipeableVocabularyItem(
     item: WordWithProgressEntity,
+    speaker: com.example.vocabkid.presentation.components.EnglishTextSpeaker,
     onDetailClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            when (value) {
+                SwipeToDismissBoxValue.EndToStart -> {
+                    // Swipe left → trigger delete confirmation
+                    onDeleteClick()
+                    false // don't actually dismiss, let the dialog handle it
+                }
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    // Swipe right → trigger edit dialog
+                    onEditClick()
+                    false // snap back after opening dialog
+                }
+                SwipeToDismissBoxValue.Settled -> false
+            }
+        },
+        positionalThreshold = { totalDistance -> totalDistance * 0.35f }
+    )
+
+    // Reset state when the card snaps back
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+            dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+        }
+    }
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val direction = dismissState.dismissDirection
+
+            val backgroundColor by animateColorAsState(
+                targetValue = when (direction) {
+                    SwipeToDismissBoxValue.EndToStart -> Color(0xFFEF4444) // Red for delete
+                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF3B82F6) // Blue for edit
+                    else -> Color.Transparent
+                },
+                animationSpec = tween(200),
+                label = "swipeBackgroundColor"
+            )
+
+            val alignment = when (direction) {
+                SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                else -> Alignment.CenterStart
+            }
+
+            val icon = when (direction) {
+                SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
+                else -> Icons.Default.Edit
+            }
+
+            val label = when (direction) {
+                SwipeToDismissBoxValue.EndToStart -> "Hapus"
+                else -> "Edit"
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(backgroundColor)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = alignment
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = label,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        },
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = true
+    ) {
+        VocabularyItemCard(
+            item = item,
+            speaker = speaker,
+            onDetailClick = onDetailClick
+        )
+    }
+}
+
+@Composable
+private fun VocabularyItemCard(
+    item: WordWithProgressEntity,
+    speaker: com.example.vocabkid.presentation.components.EnglishTextSpeaker,
+    onDetailClick: () -> Unit
 ) {
     val categoryContainerColor = categoryThemeContainerColor(item.word.category)
     val categoryContentColor = categoryThemeContentColor(item.word.category)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onDetailClick),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = categoryContainerColor,
             contentColor = categoryContentColor
@@ -348,26 +465,11 @@ private fun VocabularyItemCard(
                         )
                     }
                 }
-                Row {
-                    IconButton(onClick = onDetailClick) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Detail kosakata"
-                        )
-                    }
-                    IconButton(onClick = onEditClick) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit kosakata"
-                        )
-                    }
-                    IconButton(onClick = onDeleteClick) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Hapus kosakata"
-                        )
-                    }
-                }
+                SpeakerIconButton(
+                    text = item.word.englishWord,
+                    contentDescription = "Dengarkan ${item.word.englishWord}",
+                    speaker = speaker
+                )
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
