@@ -1,120 +1,120 @@
 # VocabKid 🌟
 
-**VocabKid** adalah aplikasi pembelajaran kosakata Bahasa Inggris interaktif untuk siswa sekolah dasar berbasis Android. Aplikasi ini menggabungkan metode **Spaced Repetition (SM-2)** dengan elemen gamifikasi, cerita bergambar interaktif, latihan pengucapan (*speech recognition*), simulasi percakapan, *mini-game*, serta asisten AI ramah anak.
+**VocabKid** is an interactive Android application designed to help elementary school students learn and retain English vocabulary. It combines the **Spaced Repetition (SM-2)** algorithm with gamification, illustrated interactive stories, speech-recognition pronunciation practice, conversation simulations, arcade mini-games, and a child-safe AI assistant.
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Key Features
 
-### 👦 Mode Siswa (Murid)
-- **📚 Study (Flashcard Spaced Repetition):** Belajar kosakata terjadwal dengan kartu bolak-balik (*flip card*), audio pelafalan (*Text-to-Speech*), dan tombol evaluasi mandiri (*Ulangi, Sulit, Cukup, Mudah*).
-- **❓ Latihan Kuis Bertingkat:** Kuis pilihan ganda per kategori dengan sistem pembukaan **Level 1 & Level 2**, umpan balik animasi interaktif, dan efek suara.
-- **📖 Adventure Stories (10 Bab / 50 Ilustrasi Scene):** Membaca cerita petualangan Bahasa Inggris bergambar (*The Lost Kitten, The River Crossing, The Secret Garden, Space Explorer, Ocean Depths, Dragon Mountain, The Time Travel Market, My Robot Friend, Jungle Expedition,* dan *The Magic Library*) lengkap dengan kuis pemahaman di sela cerita.
-- **🗣️ Pronunciation Practice:** Latihan pengucapan kosakata menggunakan mikrofon perangkat (*Android SpeechRecognizer*) dan *Text-to-Speech* untuk melatih pelafalan yang tepat.
-- **💬 Conversation Practice:** Simulasi dialog Bahasa Inggris sehari-hari dengan berbagai skenario interaktif dan pencatatan riwayat pilihan percakapan.
-- **🕹️ Arcade (Taman Bermain Kata – Memory Flip):** Permainan mencocokkan kartu kosakata Bahasa Inggris dengan artinya dalam 3 tingkat kesulitan (*Mudah, Sedang, Seru!*).
-- **🤖 VocabKid AI Assistant:** Asisten belajar pintar berbasis **Google Gemini AI** dengan filter keamanan konten anak (*Child-Safe Content Filtering*) dan *automatic model fallback*.
-- **📊 Statistik & Progress Belajar:** Visualisasi jumlah kata yang dikuasai, kata jatuh tempo hari ini, akurasi jawaban, serta daftar kata tersulit (*Frequently Wrong*).
-- **🔔 Pengingat Belajar Harian (WorkManager):** Notifikasi otomatis ramah anak setiap hari apabila terdapat kosakata yang jatuh tempo untuk diulang.
+### 👦 Student Mode
+- **📚 Study (Spaced Repetition Flashcards):** Scheduled vocabulary review with interactive flip cards, Text-to-Speech (TTS) audio pronunciation, and self-grading buttons (*Again, Hard, Good, Easy*).
+- **❓ Multi-Level Vocabulary Quiz:** Category-based multiple-choice quizzes featuring **Level 1 & Level 2** progression, animated visual feedback, and sound effects.
+- **📖 Adventure Stories (10 Chapters / 50 Illustrated Scenes):** Illustrated English storybooks (*The Lost Kitten, The River Crossing, The Secret Garden, Space Explorer, Ocean Depths, Dragon Mountain, The Time Travel Market, My Robot Friend, Jungle Expedition,* and *The Magic Library*) with embedded comprehension quizzes and vocabulary galleries.
+- **🗣️ Pronunciation Practice:** Interactive speaking practice powered by Android's `SpeechRecognizer` and `TextToSpeech` to help students master accurate English pronunciation.
+- **💬 Conversation Practice:** Role-play everyday English dialogues across various scenarios with branching choices and progress tracking.
+- **🕹️ Arcade (Word Playground – Memory Flip):** Card-matching vocabulary game across 3 difficulty levels (*Easy, Medium, Hard*) with move and timer star ratings.
+- **🤖 VocabKid AI Assistant:** Smart learning tutor powered by **Google Gemini AI** with strict child-safe content filtering and automatic model fallback.
+- **📊 Learning Progress & Analytics:** Visual statistics tracking mastered words, words due today, overall accuracy, review counts, and a dedicated *Difficult Words* review list.
+- **🔔 Daily Study Reminder (WorkManager):** Automated, battery-friendly daily notifications reminding students when vocabulary cards are due for review.
 
-### 👩‍🏫 Mode Ruang Guru (Teacher Dashboard)
-- **Kelola Materi Belajar:** Menambah, mengubah, menghapus, dan mencari daftar kosakata beserta kalimat contoh dan kategorinya.
-- **Data Siswa per Kelas:** Melihat daftar siswa berdasarkan kelas (Kelas 4–6) dan profil demografis siswa.
+### 👩‍🏫 Teacher Mode (Teacher Dashboard)
+- **Learning Material Management:** Add, edit, delete, and search vocabulary entries along with categories, difficulty levels, and example sentences.
+- **Student Roster by Grade:** View and organize student records across grades (Grades 4–6) with demographic summaries.
 
 ---
 
-## 🧠 Algoritma Spaced Repetition (SM-2)
+## 🧠 Spaced Repetition Algorithm (SM-2)
 
-VocabKid menjadwalkan pengulangan kosakata secara adaptif menggunakan algoritma **SM-2** yang disederhanakan pada [`SpacedRepetitionAlgorithm.kt`](app/src/main/java/com/example/vocabkid/domain/algorithm/SpacedRepetitionAlgorithm.kt):
+VocabKid schedules vocabulary reviews adaptively using a simplified **SM-2** algorithm implemented in [`SpacedRepetitionAlgorithm.kt`](app/src/main/java/com/example/vocabkid/domain/algorithm/SpacedRepetitionAlgorithm.kt):
 
-### Parameter Progress Kosakata
-- `repetition`: Jumlah pengulangan benar berturut-turut.
-- `intervalDays`: Jarak hari menuju jadwal review berikutnya.
-- `easeFactor`: Faktor kemudahan kata (nilai awal `2.5`, batas minimum `1.3`).
-- `dueDate`: Tanggal jatuh tempo pengulangan berikutnya.
-- `lastReviewedDate`: Waktu terakhir kata dipelajari/diuji.
-- `correctCount` & `wrongCount`: Akumulasi jawaban benar dan salah.
-- `status`: Status penguasaan kata (`Baru`, `Dipelajari`, `Dikuasai`, atau `Sering Salah`).
+### Progress Parameters
+- `repetition`: Number of consecutive successful recalls.
+- `intervalDays`: Number of days until the next scheduled review.
+- `easeFactor`: Difficulty multiplier for the word (starts at `2.5`, minimum floor `1.3`).
+- `dueDate`: Timestamp of the next scheduled review date.
+- `lastReviewedDate`: Timestamp of the most recent review session.
+- `correctCount` & `wrongCount`: Cumulative correct and incorrect review counts.
+- `status`: Mastery state (`Baru` / New, `Dipelajari` / Learning, `Dikuasai` / Mastered, or `Sering Salah` / Frequently Wrong).
 
-### Pemetaan Nilai Kualitas (`quality`)
-| Mode | Respons Siswa | Nilai `quality` |
+### Quality Score Mapping (`quality`)
+| Mode | Student Response | `quality` Score |
 | :--- | :--- | :---: |
-| **Flashcard** | Ulangi | `0` |
-| **Flashcard** | Sulit | `3` |
-| **Flashcard** | Cukup | `4` |
-| **Flashcard** | Mudah | `5` |
-| **Kuis** | Jawaban Benar | `4` |
-| **Kuis** | Jawaban Salah | `0` |
+| **Flashcard** | Again (*Ulangi*) | `0` |
+| **Flashcard** | Hard (*Sulit*) | `3` |
+| **Flashcard** | Good (*Cukup*) | `4` |
+| **Flashcard** | Easy (*Mudah*) | `5` |
+| **Quiz** | Correct Answer | `4` |
+| **Quiz** | Wrong Answer | `0` |
 
 ---
 
-## 🛠️ Teknologi & Arsitektur
+## 🛠️ Tech Stack & Architecture
 
-- **Bahasa Pemrograman:** Kotlin (JVM Target 17)
-- **Antarmuka Pengguna (UI):** Jetpack Compose & Material 3 (mendukung *Light & Dark Theme*)
-- **Arsitektur:** MVVM (*Model-View-ViewModel*) + Repository Pattern
-- **Database Lokal:** Room Database (v10 dengan migrasi skema penuh `MIGRATION_1_2` s.d. `MIGRATION_9_10` & KSP)
-- **Asynchronous & Reactive:** Kotlin Coroutines & StateFlow / Flow
-- **Tugas Latar Belakang:** AndroidX WorkManager (`DailyStudyReminderWorker`)
-- **Autentikasi:** Firebase Authentication (Email/Password) & Sesi Lokal Cepat (*Username Login*)
-- **AI Assistant:** Google Generative AI SDK (`gemini-2.0-flash-lite` dengan *fallback* ke `gemini-1.5-flash`)
-- **Pengujian:** JUnit 4, Kotlinx Coroutines Test, & Room `MigrationTestHelper`
+- **Language:** Kotlin (JVM Target 17)
+- **UI Framework:** Jetpack Compose & Material 3 (supports both *Light & Dark Theme*)
+- **Architecture:** MVVM (*Model-View-ViewModel*) + Repository Pattern
+- **Local Database:** Room Database (Schema v10 with full migration path `MIGRATION_1_2` through `MIGRATION_9_10`, compiled with KSP)
+- **Concurrency & Reactivity:** Kotlin Coroutines & StateFlow / Flow
+- **Background Processing:** AndroidX WorkManager (`DailyStudyReminderWorker`)
+- **Authentication:** Firebase Authentication (Email/Password) & Quick Local Username Session
+- **AI Integration:** Google Generative AI SDK (`gemini-2.0-flash-lite` with automatic fallback to `gemini-1.5-flash`)
+- **Testing:** JUnit 4, Kotlinx Coroutines Test, & Room `MigrationTestHelper`
 
 ---
 
-## 📂 Struktur Proyek
+## 📂 Project Structure
 
 ```text
 com.example.vocabkid
-├── audio                  # Efek suara (SoundPool) & musik latar
+├── audio                  # Sound effects (SoundPool) & background music player
 ├── data
 │   ├── local
-│   │   ├── dao            # Room Data Access Objects
-│   │   ├── database       # VocabKidDatabase (v10) & InitialVocabulary
-│   │   ├── entity         # Entitas tabel SQLite/Room
-│   │   └── model          # Model agregasi query lokal
-│   ├── remote             # GeminiChatService (AI Assistant)
+│   │   ├── dao            # Room Data Access Objects (DAO)
+│   │   ├── database       # VocabKidDatabase (v10) & InitialVocabulary seed data
+│   │   ├── entity         # SQLite/Room table entities
+│   │   └── model          # Local query aggregation models
+│   ├── remote             # GeminiChatService (AI Assistant wrapper)
 │   └── repository         # VocabKidRepository (Single Source of Truth)
 ├── domain
 │   ├── algorithm          # SpacedRepetitionAlgorithm (SM-2)
-│   └── model              # Model domain & utilitas tanggal
+│   └── model              # Domain models & DateUtils
 ├── notification           # DailyStudyReminderWorker & StudyReminderScheduler
 ├── presentation
-│   ├── arcade             # Mini-game Memory Flip
-│   ├── auth               # Login & registrasi (Siswa & Guru)
-│   ├── chatassistant      # Overlay AI Chat Assistant
-│   ├── components         # Komponen UI bersama, TTS, & RobotCoach
-│   ├── conversation       # Latihan percakapan interaktif
-│   ├── home               # Beranda siswa & statistik harian
-│   ├── navigation         # Navigasi utama & Bottom Bar
-│   ├── onboarding         # Pengenalan awal siswa
-│   ├── profile            # Pengaturan profil, avatar, & pengingat harian
-│   ├── progress           # Laporan perkembangan belajar
-│   ├── pronunciation      # Latihan pelafalan suara
-│   ├── quiz               # Kuis pilihan ganda bertingkat
-│   ├── splash             # Layar pembuka aplikasi
-│   ├── story              # 10 bab cerita interaktif & 50 ilustrasi scene
-│   ├── study              # Belajar flashcard SM-2
-│   ├── teacher            # Ruang Guru (Dashboard, Materi, & Data Siswa)
-│   └── vocabulary         # Manajemen & detail kosakata
-└── ui.theme               # Konfigurasi warna, tipografi, & tema
+│   ├── arcade             # Memory Flip mini-game
+│   ├── auth               # Student & Teacher authentication screens
+│   ├── chatassistant      # Floating AI Chat Assistant overlay
+│   ├── components         # Shared UI components, TTS helpers, & RobotCoach
+│   ├── conversation       # Interactive dialogue practice
+│   ├── home               # Student dashboard & daily summary
+│   ├── navigation         # Navigation graph & GlassBottomNavigationBar
+│   ├── onboarding         # Initial student profile setup
+│   ├── profile            # Profile editor, avatar picker, & reminder settings
+│   ├── progress           # Learning statistics & visual charts
+│   ├── pronunciation      # Speech recognition pronunciation trainer
+│   ├── quiz               # Multi-level multiple-choice quiz
+│   ├── splash             # Animated splash screen
+│   ├── story              # 10 interactive story chapters & 50 scene illustrations
+│   ├── study              # SM-2 flashcard study session
+│   ├── teacher            # Teacher Dashboard, vocabulary manager, & student roster
+│   └── vocabulary         # Vocabulary list, search, & detail view
+└── ui.theme               # Color palettes, typography, & app theming
 ```
 
 ---
 
-## 🚀 Cara Menjalankan Proyek
+## 🚀 Getting Started
 
-1. **Clone repositori ini:**
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/AdeAl29/VocabKid.git
    ```
-2. **Buka di Android Studio** (Ladybug atau versi terbaru yang mendukung AGP `8.6.1` dan Compile SDK `35`).
-3. *(Opsional)* Untuk mengaktifkan fitur **AI Chat Assistant**, tambahkan kunci API Gemini pada file `local.properties` di root project:
+2. **Open in Android Studio** (Ladybug or newer supporting AGP `8.6.1` and Compile SDK `35`).
+3. *(Optional)* To enable the **VocabKid AI Chat Assistant**, add your Gemini API key to `local.properties` in the project root:
    ```properties
    GEMINI_API_KEY=your_gemini_api_key_here
    ```
-4. Tunggu proses **Gradle Sync** selesai, lalu jalankan modul `app` pada emulator atau perangkat Android (minimal **Android 7.0 / SDK 24**).
-5. Untuk menjalankan *unit test*:
+4. Wait for **Gradle Sync** to finish, then run the `app` configuration on an Android emulator or physical device (**Android 7.0 / API 24** or higher).
+5. **Run unit tests:**
    ```bash
    ./gradlew testDebugUnitTest
    ```
