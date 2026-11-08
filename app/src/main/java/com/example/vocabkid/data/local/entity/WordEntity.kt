@@ -18,6 +18,8 @@ data class WordEntity(
     val englishWord: String,
     val indonesianMeaning: String,
     val category: String,
+    @ColumnInfo(defaultValue = "1")
+    val level: Int = 1,
     val exampleSentence: String,
     @ColumnInfo(defaultValue = "''")
     val normalizedEnglishWord: String = englishWord.trim().lowercase(),

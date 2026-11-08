@@ -19,6 +19,9 @@ interface WordProgressDao {
     suspend fun countProgressRows(): Int
 
     @Query("SELECT COUNT(*) FROM word_progress WHERE dueDate <= :today")
+    suspend fun countDueWords(today: Long): Int
+
+    @Query("SELECT COUNT(*) FROM word_progress WHERE dueDate <= :today")
     fun observeDueCount(today: Long): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM word_progress WHERE status = 'Dipelajari'")

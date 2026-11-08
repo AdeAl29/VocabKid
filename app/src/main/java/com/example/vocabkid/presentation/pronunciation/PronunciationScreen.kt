@@ -376,6 +376,20 @@ private fun PronunciationMainContent(
 
             // ── Stats Row ─────────────────────────────────────────────────────
             PremiumStatsRow(state = state)
+            if (state.sessionTotal > 0) {
+                val abilityText = when {
+                    state.sessionCorrect * 100 / state.sessionTotal >= 80 -> "Kemampuan pengucapan sangat baik."
+                    state.sessionCorrect * 100 / state.sessionTotal >= 60 -> "Pengucapanmu cukup baik, terus berlatih."
+                    else -> "Ayo ulangi beberapa kata untuk meningkatkan kemampuanmu."
+                }
+                Text(
+                    text = "Nilai latihan: ${state.score} poin • $abilityText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.72f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             // ── Word Pronunciation Card ───────────────────────────────────────
             AnimatedContent(
@@ -601,6 +615,14 @@ private fun PremiumStatsRow(state: PronunciationUiState) {
             label = "Akurasi",
             bgColor = AccentCyan.copy(0.12f),
             accentColor = AccentCyan,
+            modifier = Modifier.weight(1f)
+        )
+        StatChip(
+            icon = "P",
+            value = "${state.score}",
+            label = "Poin",
+            bgColor = GoldStreak.copy(0.12f),
+            accentColor = GoldStreak,
             modifier = Modifier.weight(1f)
         )
         // Streak (animated if active)

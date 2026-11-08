@@ -11,6 +11,7 @@ object Routes {
     const val VOCABULARY_DETAIL = "vocabulary_detail/{wordId}"
     const val PROGRESS = "progress"
     const val PROFILE = "profile"
+    const val TEACHER_STUDENTS = "teacher_students"
     const val CONVERSATION = "conversation"
     const val PRONUNCIATION = "pronunciation"
     const val STORY = "story"

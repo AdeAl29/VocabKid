@@ -86,7 +86,7 @@ fun StudyScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val dueCards by viewModel.dueCards.collectAsStateWithLifecycle()
-    val currentCard = dueCards.firstOrNull()
+    val currentCard = viewModel.currentCard()
     val soundEffects = rememberSoundEffectPlayer()
 
     Scaffold(
@@ -156,7 +156,7 @@ fun StudyScreen(
                         ) {
                             ReviewButton(
                                 text = "Ulangi",
-                                onClick = { viewModel.review(currentCard.word.id, 0) },
+                                onClick = { viewModel.review(currentCard.word.id, 0, repeatImmediately = true) },
                                 modifier = Modifier.weight(1f),
                                 enabled = !viewModel.isReviewing,
                                 containerColor = MaterialTheme.colorScheme.error

@@ -10,6 +10,7 @@ import com.example.vocabkid.data.local.dao.ConversationLineDao
 import com.example.vocabkid.data.local.dao.ConversationProgressDao
 import com.example.vocabkid.data.local.dao.ReviewHistoryDao
 import com.example.vocabkid.data.local.dao.StudentDao
+import com.example.vocabkid.data.local.dao.RosterStudentDao
 import com.example.vocabkid.data.local.dao.WordDao
 import com.example.vocabkid.data.local.dao.WordProgressDao
 import com.example.vocabkid.data.local.entity.ConversationChoiceHistoryEntity
@@ -17,12 +18,14 @@ import com.example.vocabkid.data.local.entity.ConversationLineEntity
 import com.example.vocabkid.data.local.entity.ConversationScenarioProgressEntity
 import com.example.vocabkid.data.local.entity.ReviewHistoryEntity
 import com.example.vocabkid.data.local.entity.StudentEntity
+import com.example.vocabkid.data.local.entity.RosterStudentEntity
 import com.example.vocabkid.data.local.entity.WordEntity
 import com.example.vocabkid.data.local.entity.WordProgressEntity
 
 @Database(
     entities = [
         StudentEntity::class,
+        RosterStudentEntity::class,
         WordEntity::class,
         WordProgressEntity::class,
         ReviewHistoryEntity::class,
@@ -30,11 +33,12 @@ import com.example.vocabkid.data.local.entity.WordProgressEntity
         ConversationScenarioProgressEntity::class,
         ConversationChoiceHistoryEntity::class
     ],
-    version = 6,
+    version = 10,
     exportSchema = true
 )
 abstract class VocabKidDatabase : RoomDatabase() {
     abstract fun studentDao(): StudentDao
+    abstract fun rosterStudentDao(): RosterStudentDao
     abstract fun wordDao(): WordDao
     abstract fun wordProgressDao(): WordProgressDao
     abstract fun reviewHistoryDao(): ReviewHistoryDao
@@ -52,14 +56,14 @@ abstract class VocabKidDatabase : RoomDatabase() {
                     VocabKidDatabase::class.java,
                     "vocabkid.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(*ALL_MIGRATIONS)
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
+        internal val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     "ALTER TABLE students ADD COLUMN avatar TEXT NOT NULL DEFAULT 'siswa'"
@@ -207,5 +211,55 @@ abstract class VocabKidDatabase : RoomDatabase() {
                 )
             }
         }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE words ADD COLUMN level INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE students ADD COLUMN role TEXT NOT NULL DEFAULT 'MURID'")
+            }
+        }
+
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS roster_students (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        nis TEXT NOT NULL,
+                        grade INTEGER NOT NULL,
+                        email TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_roster_students_nis ON roster_students(nis)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_roster_students_grade ON roster_students(grade)")
+            }
+        }
+
+        internal val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE roster_students ADD COLUMN gender TEXT NOT NULL DEFAULT 'L'")
+            }
+        }
+
+        internal val ALL_MIGRATIONS: Array<Migration>
+            get() = arrayOf(
+                MIGRATION_1_2,
+                MIGRATION_2_3,
+                MIGRATION_3_4,
+                MIGRATION_4_5,
+                MIGRATION_5_6,
+                MIGRATION_6_7,
+                MIGRATION_7_8,
+                MIGRATION_8_9,
+                MIGRATION_9_10
+            )
     }
 }

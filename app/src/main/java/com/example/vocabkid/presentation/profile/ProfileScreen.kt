@@ -1,5 +1,10 @@
 package com.example.vocabkid.presentation.profile
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +34,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.School
@@ -43,6 +49,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,13 +62,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vocabkid.domain.model.StudentAvatar
+import com.example.vocabkid.notification.StudyReminderScheduler
 import com.example.vocabkid.presentation.components.KidTopBar
 import com.example.vocabkid.presentation.components.StudentAvatarBadge
 
@@ -248,6 +258,126 @@ fun ProfileScreen(
                         )
                     }
                 }
+            }
+
+            StudyReminderCard()
+        }
+    }
+}
+
+@Composable
+private fun StudyReminderCard() {
+    val context = LocalContext.current
+    var isReminderEnabled by remember {
+        mutableStateOf(StudyReminderScheduler.isReminderEnabled(context))
+    }
+    var reminderStatusText by remember { mutableStateOf<String?>(null) }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            StudyReminderScheduler.setReminderEnabled(context, true)
+            isReminderEnabled = true
+            reminderStatusText = "Pengingat harian diaktifkan (pukul 16:00)."
+        } else {
+            StudyReminderScheduler.setReminderEnabled(context, false)
+            isReminderEnabled = false
+            reminderStatusText = "Izin notifikasi ditolak. Aktifkan izin notifikasi di pengaturan perangkat."
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Column {
+                        Text(
+                            text = "Pengingat Belajar Harian",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Notifikasi otomatis jika ada kosakata jatuh tempo (SM-2)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Switch(
+                    checked = isReminderEnabled,
+                    onCheckedChange = { checked ->
+                        if (checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val hasPermission = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                            if (!hasPermission) {
+                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                return@Switch
+                            }
+                        }
+                        StudyReminderScheduler.setReminderEnabled(context, checked)
+                        isReminderEnabled = checked
+                        reminderStatusText = if (checked) {
+                            "Pengingat harian aktif setiap pukul 16:00."
+                        } else {
+                            "Pengingat harian dinonaktifkan."
+                        }
+                    }
+                )
+            }
+
+            reminderStatusText?.let { status ->
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            OutlinedButton(
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val hasPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (!hasPermission) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            return@OutlinedButton
+                        }
+                    }
+                    StudyReminderScheduler.triggerImmediateCheck(context, forceNotify = true)
+                    reminderStatusText = "Notifikasi uji coba dikirim melalui WorkManager!"
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Tes Notifikasi Pengingat Sekarang")
             }
         }
     }

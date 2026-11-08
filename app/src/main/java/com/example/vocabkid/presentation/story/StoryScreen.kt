@@ -1217,6 +1217,13 @@ private fun StoryAtmosphereBackground(chapterId: Int) {
                 1 -> Color(0xFFFFA07A).copy(alpha = animAlpha)
                 2 -> Color(0xFF87CEEB).copy(alpha = animAlpha)
                 3 -> Color(0xFFFF90C8).copy(alpha = animAlpha)
+                4 -> Color(0xFFB388FF).copy(alpha = animAlpha)
+                5 -> Color(0xFF4DD0E1).copy(alpha = animAlpha)
+                6 -> Color(0xFFFFAB40).copy(alpha = animAlpha)
+                7 -> Color(0xFF64FFDA).copy(alpha = animAlpha)
+                8 -> Color(0xFF80CBC4).copy(alpha = animAlpha)
+                9 -> Color(0xFFFFD54F).copy(alpha = animAlpha)
+                10 -> Color(0xFFF48FB1).copy(alpha = animAlpha)
                 else -> Color.White.copy(alpha = animAlpha)
             }
             drawCircle(particleColor, if (i % 3 == 0) 3f else 1.5f, Offset(w * px, h * py + yDrift))
@@ -1270,6 +1277,13 @@ private fun CinematicNarrationCard(
         1 -> Color(0xFFFF9A56)
         2 -> Color(0xFF2196F3)
         3 -> Color(0xFF9C27B0)
+        4 -> Color(0xFF7C4DFF)
+        5 -> Color(0xFF00ACC1)
+        6 -> Color(0xFFFF6F00)
+        7 -> Color(0xFF00BFA5)
+        8 -> Color(0xFF26A69A)
+        9 -> Color(0xFFF9A825)
+        10 -> Color(0xFFEC407A)
         else -> Color(0xFF6C63FF)
     }
 

@@ -17,6 +17,8 @@ data class StudentEntity(
     val nis: String = "",
     val grade: Int,
     val avatar: String = "siswa",
+    @ColumnInfo(defaultValue = "MURID")
+    val role: String = "MURID",
     @ColumnInfo(defaultValue = "0")
     val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(defaultValue = "0")

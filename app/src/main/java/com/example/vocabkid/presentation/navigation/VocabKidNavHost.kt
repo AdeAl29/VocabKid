@@ -6,9 +6,15 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +38,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,12 +54,15 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,6 +70,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.vocabkid.data.repository.VocabKidRepository
+import com.example.vocabkid.domain.model.UserRole
 import com.example.vocabkid.presentation.arcade.ArcadeScreen
 import com.example.vocabkid.presentation.arcade.ArcadeViewModel
 import com.example.vocabkid.presentation.auth.AuthScreen
@@ -74,6 +86,9 @@ import com.example.vocabkid.presentation.onboarding.OnboardingViewModel
 import com.example.vocabkid.presentation.components.SkyThemeBackground
 import com.example.vocabkid.presentation.profile.ProfileScreen
 import com.example.vocabkid.presentation.profile.ProfileViewModel
+import com.example.vocabkid.presentation.teacher.TeacherProfileScreen
+import com.example.vocabkid.presentation.teacher.TeacherStudentsScreen
+import kotlin.math.abs
 import com.example.vocabkid.presentation.progress.ProgressScreen
 import com.example.vocabkid.presentation.progress.ProgressViewModel
 import com.example.vocabkid.presentation.quiz.QuizScreen
@@ -88,6 +103,7 @@ import com.example.vocabkid.presentation.vocabulary.VocabularyViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -113,8 +129,41 @@ fun VocabKidNavHost(
     var showSplash by rememberSaveable { mutableStateOf(true) }
     var isLogoutDialogOpen by rememberSaveable { mutableStateOf(false) }
     var shouldSkipNextLogoutConfirmation by rememberSaveable { mutableStateOf(false) }
+    var isBottomBarMinimized by rememberSaveable { mutableStateOf(false) }
+    var isScreenInteractionActive by remember { mutableStateOf(false) }
+    var bottomBarActivityVersion by remember { mutableIntStateOf(0) }
+    val currentProfile by repository.observeStudent().collectAsStateWithLifecycle(initialValue = null)
+    val isTeacher = UserRole.fromStorage(currentProfile?.role) == UserRole.GURU
     val showBottomBar = startDestination != null && currentRoute == Routes.MAIN_TABS && !showSplash
     val bottomContentPadding = if (showBottomBar) 104.dp else 0.dp
+    LaunchedEffect(bottomBarActivityVersion, isScreenInteractionActive, showBottomBar) {
+        if (!showBottomBar || isScreenInteractionActive) return@LaunchedEffect
+        delay(3000L)
+        isBottomBarMinimized = true
+    }
+    val onScreenTouchStart by rememberUpdatedState {
+        isScreenInteractionActive = true
+        bottomBarActivityVersion++
+    }
+    val onScreenTouchEnd by rememberUpdatedState {
+        isScreenInteractionActive = false
+        bottomBarActivityVersion++
+    }
+    val onScreenScrollDirection: (Boolean) -> Unit = { isScrollingDown ->
+        val shouldMinimize = isScrollingDown
+        if (isBottomBarMinimized != shouldMinimize) {
+            isBottomBarMinimized = shouldMinimize
+            bottomBarActivityVersion++
+        }
+    }
+    val onScreenTap by rememberUpdatedState {
+        isBottomBarMinimized = false
+        bottomBarActivityVersion++
+    }
+    val onBottomBarInteraction: () -> Unit = {
+        isBottomBarMinimized = false
+        bottomBarActivityVersion++
+    }
     val performLogout: () -> Unit = {
         firebaseAuth.signOut()
         coroutineScope.launch {
@@ -146,8 +195,12 @@ fun VocabKidNavHost(
 
     LaunchedEffect(Unit) {
         repository.seedInitialVocabularyIfNeeded()
+        repository.seedInitialRosterStudentsIfNeeded()
+        val usernameSession = repository.getUsernameSession()
         val currentUser = firebaseAuth.currentUser
-        startDestination = if (currentUser != null) {
+        startDestination = if (usernameSession != null) {
+            Routes.MAIN_TABS
+        } else if (currentUser != null) {
             ensureLocalStudent(repository, currentUser)
             Routes.MAIN_TABS
         } else {
@@ -166,7 +219,37 @@ fun VocabKidNavHost(
                 CircularProgressIndicator()
             }
         } else if (initialRoute != null && !showSplash) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(
+                                requireUnconsumed = false,
+                                pass = PointerEventPass.Initial
+                            )
+                            onScreenTouchStart()
+                            var verticalScrollDetected = false
+                            val scrollThreshold = viewConfiguration.touchSlop
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                val change = event.changes.firstOrNull { it.id == down.id }
+                                if (change != null) {
+                                    val distanceX = change.position.x - down.position.x
+                                    val distanceY = change.position.y - down.position.y
+                                    if (abs(distanceY) > scrollThreshold && abs(distanceY) > abs(distanceX)) {
+                                        verticalScrollDetected = true
+                                        // Finger moving up means the content is scrolling down.
+                                        onScreenScrollDirection(distanceY < 0f)
+                                    }
+                                }
+                                if (event.changes.none { it.pressed }) break
+                            }
+                            if (!verticalScrollDetected) onScreenTap()
+                            onScreenTouchEnd()
+                        }
+                    }
+            ) {
                 if (isLogoutDialogOpen) {
                     LogoutConfirmationDialog(
                         doNotShowAgain = shouldSkipNextLogoutConfirmation,
@@ -185,7 +268,31 @@ fun VocabKidNavHost(
                 NavHost(
                     navController = navController,
                     startDestination = initialRoute,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    enterTransition = {
+                        fadeIn(tween(190)) + slideInHorizontally(
+                            animationSpec = tween(190, easing = FastOutSlowInEasing),
+                            initialOffsetX = { width -> width / 24 }
+                        )
+                    },
+                    exitTransition = {
+                        fadeOut(tween(140)) + slideOutHorizontally(
+                            animationSpec = tween(140, easing = FastOutSlowInEasing),
+                            targetOffsetX = { width -> -width / 36 }
+                        )
+                    },
+                    popEnterTransition = {
+                        fadeIn(tween(190)) + slideInHorizontally(
+                            animationSpec = tween(190, easing = FastOutSlowInEasing),
+                            initialOffsetX = { width -> -width / 24 }
+                        )
+                    },
+                    popExitTransition = {
+                        fadeOut(tween(140)) + slideOutHorizontally(
+                            animationSpec = tween(140, easing = FastOutSlowInEasing),
+                            targetOffsetX = { width -> width / 36 }
+                        )
+                    }
                 ) {
                     composable(Routes.AUTH) {
                         val viewModel: AuthViewModel = viewModel(factory = factory)
@@ -193,8 +300,8 @@ fun VocabKidNavHost(
                             isLoading = viewModel.isLoading,
                             errorMessage = viewModel.errorMessage,
                             successMessage = viewModel.successMessage,
-                            onLoginSubmit = { email, password ->
-                                viewModel.login(email, password) {
+                            onLoginSubmit = { identity, password, role, useUsername ->
+                                viewModel.login(identity, password, role, useUsername) {
                                     selectedMainRoute = Routes.HOME
                                     navController.navigate(Routes.MAIN_TABS) {
                                         popUpTo(Routes.AUTH) { inclusive = true }
@@ -202,8 +309,8 @@ fun VocabKidNavHost(
                                     }
                                 }
                             },
-                            onRegisterSubmit = { name, nis, email, password, grade ->
-                                viewModel.register(name, nis, email, password, grade) {
+                            onRegisterSubmit = { name, nis, email, password, grade, role ->
+                                viewModel.register(name, nis, email, password, grade, role) {
                                     selectedMainRoute = Routes.HOME
                                     navController.navigate(Routes.MAIN_TABS) {
                                         popUpTo(Routes.AUTH) { inclusive = true }
@@ -231,6 +338,8 @@ fun VocabKidNavHost(
                     composable(Routes.MAIN_TABS) {
                         MainTabsContent(
                             factory = factory,
+                            repository = repository,
+                            isTeacher = isTeacher,
                             selectedRoute = selectedMainRoute,
                             onSelectedRouteChange = { route -> selectedMainRoute = route },
                             isDarkTheme = isDarkTheme,
@@ -242,6 +351,7 @@ fun VocabKidNavHost(
                             },
                             bottomContentPadding = bottomContentPadding,
                             onProfileClick = { navController.navigate(Routes.PROFILE) },
+                            onStudentsClick = { navController.navigate(Routes.TEACHER_STUDENTS) },
                             onStoryClick = {
                                 navController.navigate(Routes.STORY) {
                                     launchSingleTop = true
@@ -297,12 +407,32 @@ fun VocabKidNavHost(
                     }
 
                     composable(Routes.PROFILE) {
-                        val viewModel: ProfileViewModel = viewModel(factory = factory)
-                        ProfileScreen(
-                            viewModel = viewModel,
-                            onBackClick = { navController.popBackStack() },
-                            onLogoutClick = requestLogout
-                        )
+                        if (isTeacher) {
+                            TeacherProfileScreen(
+                                repository = repository,
+                                firebaseAuth = firebaseAuth,
+                                onBackClick = { navController.popBackStack() },
+                                onLogoutClick = requestLogout
+                            )
+                        } else {
+                            val viewModel: ProfileViewModel = viewModel(factory = factory)
+                            ProfileScreen(
+                                viewModel = viewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onLogoutClick = requestLogout
+                            )
+                        }
+                    }
+
+                    composable(Routes.TEACHER_STUDENTS) {
+                        if (isTeacher) {
+                            TeacherStudentsScreen(
+                                repository = repository,
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        } else {
+                            navController.popBackStack()
+                        }
                     }
 
                     composable(Routes.ARCADE) {
@@ -317,6 +447,9 @@ fun VocabKidNavHost(
                 if (showBottomBar) {
                     GlassBottomNavigationBar(
                         currentRoute = selectedMainRoute,
+                        isMinimized = isBottomBarMinimized,
+                        onInteraction = onBottomBarInteraction,
+                        isTeacher = isTeacher,
                         onNavigate = { route ->
                             selectedMainRoute = route
                         },

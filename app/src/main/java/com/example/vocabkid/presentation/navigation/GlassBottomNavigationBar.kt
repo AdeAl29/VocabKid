@@ -3,6 +3,7 @@ package com.example.vocabkid.presentation.navigation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -70,10 +71,18 @@ import kotlin.math.roundToInt
 fun GlassBottomNavigationBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    isMinimized: Boolean,
+    onInteraction: () -> Unit,
+    isTeacher: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val itemCount = mainBottomNavItems.size
-    val routeIndex = mainBottomNavItems
+    val navItems = if (isTeacher) {
+        mainBottomNavItems.filter { it.route == Routes.HOME || it.route == Routes.VOCABULARY }
+    } else {
+        mainBottomNavItems
+    }
+    val itemCount = navItems.size
+    val routeIndex = navItems
         .indexOfFirst { item -> item.route == currentRoute }
         .coerceAtLeast(0)
 
@@ -123,7 +132,7 @@ fun GlassBottomNavigationBar(
     val animatedIndex by animateFloatAsState(
         targetValue = targetIndexFloat,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
+            dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow
         ),
         label = "navAnimatedIndex"
@@ -140,33 +149,77 @@ fun GlassBottomNavigationBar(
         }
     }
 
-    Surface(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 14.dp, vertical = 10.dp)
-            .shadow(
-                elevation = if (isDark) 16.dp else 12.dp,
-                shape = shape,
-                spotColor = if (isDark) Color.Black.copy(alpha = 0.60f) else Color(0x28000000),
-                ambientColor = Color.Transparent
-            ),
-        shape = shape,
-        color = Color.Transparent
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
-        BoxWithConstraints(
-            modifier = Modifier
-                .height(66.dp)
-                .clip(shape)
-                .background(glassBrush)
-                .border(0.9.dp, borderBrush, shape)
-        ) {
-            val horizontalPadding = 8.dp
-            val verticalPadding = 8.dp
-            val availableWidth = maxWidth - (horizontalPadding * 2)
+        // The compact capsule hugs the icons and remains centered in the same bottom slot.
+        val barWidth by animateDpAsState(
+            targetValue = if (isMinimized) {
+                minOf(maxWidth, MINIMIZED_ITEM_WIDTH * itemCount + MINIMIZED_HORIZONTAL_PADDING * 2)
+            } else {
+                maxWidth
+            },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "bottomNavWidth"
+        )
+        val barHeight by animateDpAsState(
+            targetValue = if (isMinimized) MINIMIZED_BAR_HEIGHT else 66.dp,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "bottomNavHeight"
+        )
+        val minimizedAlpha by animateFloatAsState(
+            targetValue = if (isMinimized) MINIMIZED_BAR_ALPHA else 1f,
+            animationSpec = tween(durationMillis = 520),
+            label = "bottomNavAlpha"
+        )
 
-            val inactiveWidthFraction = INACTIVE_ITEM_WEIGHT / TOTAL_WEIGHT
-            val activeWidthFraction = ACTIVE_ITEM_WEIGHT / TOTAL_WEIGHT
+        Surface(
+            modifier = Modifier
+                .width(barWidth)
+                .height(barHeight)
+                .graphicsLayer {
+                    alpha = minimizedAlpha
+                }
+                .shadow(
+                    elevation = if (isDark) 16.dp else 12.dp,
+                    shape = shape,
+                    spotColor = if (isDark) Color.Black.copy(alpha = 0.60f) else Color(0x28000000),
+                    ambientColor = Color.Transparent
+                ),
+            shape = shape,
+            color = Color.Transparent
+        ) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape)
+                    .background(glassBrush)
+                    .border(0.9.dp, borderBrush, shape)
+            ) {
+                val horizontalPadding = if (isMinimized) MINIMIZED_HORIZONTAL_PADDING else 8.dp
+                val verticalPadding = if (isMinimized) 0.dp else 8.dp
+                val itemsWidthFraction = 1f
+                val itemsAreaWidth = maxWidth * itemsWidthFraction
+                val availableWidth = itemsAreaWidth - (horizontalPadding * 2)
+                val itemsStart = ((maxWidth - itemsAreaWidth) / 2) + horizontalPadding
+
+                val totalWeight = if (isMinimized) {
+                    itemCount.toFloat()
+                } else {
+                    ACTIVE_ITEM_WEIGHT + (INACTIVE_ITEM_WEIGHT * (itemCount - 1))
+                }
+                val inactiveWidthFraction = if (isMinimized) 1f / totalWeight else INACTIVE_ITEM_WEIGHT / totalWeight
+                val activeWidthFraction = if (isMinimized) 1f / totalWeight else ACTIVE_ITEM_WEIGHT / totalWeight
 
             val inactiveWidthDp = availableWidth * inactiveWidthFraction
             val activeWidthDp = availableWidth * activeWidthFraction
@@ -177,7 +230,7 @@ fun GlassBottomNavigationBar(
             val stretchFactor = (1f - 2f * abs(transitFraction - 0.5f)).coerceAtLeast(0f)
             val stretchDp = 10.dp * stretchFactor
 
-            val pillXDp = horizontalPadding + (inactiveWidthDp * normalizedPos) - (stretchDp / 2f)
+            val pillXDp = itemsStart + (inactiveWidthDp * normalizedPos) - (stretchDp / 2f)
             val pillWidthDp = activeWidthDp + stretchDp
 
             // Floating Pill Capsule (iOS Frosted Pill Slider)
@@ -217,7 +270,7 @@ fun GlassBottomNavigationBar(
                     .offset(x = pillXDp)
                     .align(Alignment.CenterStart)
                     .width(pillWidthDp)
-                    .height(50.dp)
+                    .height(if (isMinimized) MINIMIZED_PILL_HEIGHT else 50.dp)
                     .shadow(
                         elevation = if (isDark) 2.dp else 4.dp,
                         shape = pillShape,
@@ -235,13 +288,16 @@ fun GlassBottomNavigationBar(
 
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth(itemsWidthFraction)
+                    .height(if (isMinimized) MINIMIZED_ITEM_HEIGHT else 50.dp)
+                    .align(Alignment.Center)
                     .padding(horizontal = horizontalPadding, vertical = verticalPadding)
                     .pointerInput(selectedIndex, inactiveWidthPx) {
                         detectHorizontalDragGestures(
                             onDragStart = {
                                 isDragging = true
                                 dragProgress = selectedIndex.toFloat()
+                                onInteraction()
                             },
                             onHorizontalDrag = { change, dragAmount ->
                                 change.consume()
@@ -253,28 +309,30 @@ fun GlassBottomNavigationBar(
                             onDragEnd = {
                                 val targetIndex = dragProgress.roundToInt().coerceIn(0, itemCount - 1)
                                 isDragging = false
+                                onInteraction()
                                 if (targetIndex != selectedIndex) {
                                     selectedIndex = targetIndex
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     soundEffects.playSelect()
-                                    latestOnNavigate(mainBottomNavItems[targetIndex].route)
+                                    latestOnNavigate(navItems[targetIndex].route)
                                 }
                             },
                             onDragCancel = {
                                 isDragging = false
                                 dragProgress = selectedIndex.toFloat()
+                                onInteraction()
                             }
                         )
                     },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                mainBottomNavItems.forEachIndexed { index, item ->
+                navItems.forEachIndexed { index, item ->
                     val isSelected = visualSelectedIndex == index
                     val itemWeight by animateFloatAsState(
-                        targetValue = if (isSelected) ACTIVE_ITEM_WEIGHT else INACTIVE_ITEM_WEIGHT,
+                        targetValue = if (isMinimized) 1f else if (isSelected) ACTIVE_ITEM_WEIGHT else INACTIVE_ITEM_WEIGHT,
                         animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            dampingRatio = Spring.DampingRatioNoBouncy,
                             stiffness = Spring.StiffnessMediumLow
                         ),
                         label = "bottomNavWeight_$index"
@@ -283,7 +341,9 @@ fun GlassBottomNavigationBar(
                     GlassBottomNavItem(
                         item = item,
                         selected = isSelected,
+                        compact = isMinimized,
                         onClick = {
+                            onInteraction()
                             if (index != selectedIndex) {
                                 selectedIndex = index
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -293,16 +353,18 @@ fun GlassBottomNavigationBar(
                         },
                         modifier = Modifier.weight(itemWeight)
                     )
-                }
             }
         }
     }
+}
+}
 }
 
 @Composable
 private fun GlassBottomNavItem(
     item: BottomNavItem,
     selected: Boolean,
+    compact: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -344,7 +406,7 @@ private fun GlassBottomNavItem(
 
     Box(
         modifier = modifier
-            .height(50.dp)
+                    .height(50.dp)
             .clip(RoundedCornerShape(25.dp))
             .clickable(
                 interactionSource = interactionSource,
@@ -359,7 +421,7 @@ private fun GlassBottomNavItem(
         contentAlignment = Alignment.Center
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 6.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -374,7 +436,7 @@ private fun GlassBottomNavItem(
                     }
             )
             AnimatedVisibility(
-                visible = selected,
+                visible = selected && !compact,
                 enter = fadeIn(
                     animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
                 ) + expandHorizontally(
@@ -391,7 +453,7 @@ private fun GlassBottomNavItem(
             ) {
                 Text(
                     text = item.label,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = contentColor,
                     maxLines = 1,
@@ -419,3 +481,9 @@ val mainBottomNavItems = listOf(
 private const val ACTIVE_ITEM_WEIGHT = 1.62f
 private const val INACTIVE_ITEM_WEIGHT = 0.72f
 private const val TOTAL_WEIGHT = ACTIVE_ITEM_WEIGHT + (4 * INACTIVE_ITEM_WEIGHT)
+private const val MINIMIZED_BAR_ALPHA = 0.60f
+private val MINIMIZED_ITEM_WIDTH = 48.dp
+private val MINIMIZED_HORIZONTAL_PADDING = 4.dp
+private val MINIMIZED_BAR_HEIGHT = 48.dp
+private val MINIMIZED_ITEM_HEIGHT = 44.dp
+private val MINIMIZED_PILL_HEIGHT = 40.dp

@@ -11,7 +11,7 @@ import androidx.compose.ui.res.painterResource
 import com.example.vocabkid.R
 
 /**
- * Returns the drawable resource ID for a story scene if available.
+ * Returns the drawable resource ID for a story scene across all 10 chapters (50 scenes total).
  */
 fun storySceneDrawableRes(chapterId: Int, sceneId: Int): Int? {
     return when (chapterId) {
@@ -43,6 +43,56 @@ fun storySceneDrawableRes(chapterId: Int, sceneId: Int): Int? {
             1 -> R.drawable.illust_story_c4_s1
             2 -> R.drawable.illust_story_c4_s2
             3 -> R.drawable.illust_story_c4_s3
+            4 -> R.drawable.illust_story_c4_s4
+            5 -> R.drawable.illust_story_c4_s5
+            else -> null
+        }
+        5 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c5_s1
+            2 -> R.drawable.illust_story_c5_s2
+            3 -> R.drawable.illust_story_c5_s3
+            4 -> R.drawable.illust_story_c5_s4
+            5 -> R.drawable.illust_story_c5_s5
+            else -> null
+        }
+        6 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c6_s1
+            2 -> R.drawable.illust_story_c6_s2
+            3 -> R.drawable.illust_story_c6_s3
+            4 -> R.drawable.illust_story_c6_s4
+            5 -> R.drawable.illust_story_c6_s5
+            else -> null
+        }
+        7 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c7_s1
+            2 -> R.drawable.illust_story_c7_s2
+            3 -> R.drawable.illust_story_c7_s3
+            4 -> R.drawable.illust_story_c7_s4
+            5 -> R.drawable.illust_story_c7_s5
+            else -> null
+        }
+        8 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c8_s1
+            2 -> R.drawable.illust_story_c8_s2
+            3 -> R.drawable.illust_story_c8_s3
+            4 -> R.drawable.illust_story_c8_s4
+            5 -> R.drawable.illust_story_c8_s5
+            else -> null
+        }
+        9 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c9_s1
+            2 -> R.drawable.illust_story_c9_s2
+            3 -> R.drawable.illust_story_c9_s3
+            4 -> R.drawable.illust_story_c9_s4
+            5 -> R.drawable.illust_story_c9_s5
+            else -> null
+        }
+        10 -> when (sceneId) {
+            1 -> R.drawable.illust_story_c10_s1
+            2 -> R.drawable.illust_story_c10_s2
+            3 -> R.drawable.illust_story_c10_s3
+            4 -> R.drawable.illust_story_c10_s4
+            5 -> R.drawable.illust_story_c10_s5
             else -> null
         }
         else -> null
@@ -50,7 +100,7 @@ fun storySceneDrawableRes(chapterId: Int, sceneId: Int): Int? {
 }
 
 /**
- * Returns the cover/thumbnail drawable resource ID for a story chapter.
+ * Returns the cover/thumbnail drawable resource ID for a story chapter (Chapters 1..10).
  */
 fun storyChapterCoverDrawableRes(chapterId: Int, context: Context? = null): Int? {
     val staticRes = when (chapterId) {
@@ -58,6 +108,12 @@ fun storyChapterCoverDrawableRes(chapterId: Int, context: Context? = null): Int?
         2 -> R.drawable.illust_story_c2_s1
         3 -> R.drawable.illust_story_c3_s1
         4 -> R.drawable.illust_story_c4_s1
+        5 -> R.drawable.illust_story_c5_s1
+        6 -> R.drawable.illust_story_c6_s1
+        7 -> R.drawable.illust_story_c7_s1
+        8 -> R.drawable.illust_story_c8_s1
+        9 -> R.drawable.illust_story_c9_s1
+        10 -> R.drawable.illust_story_c10_s1
         else -> null
     }
     if (staticRes != null) return staticRes

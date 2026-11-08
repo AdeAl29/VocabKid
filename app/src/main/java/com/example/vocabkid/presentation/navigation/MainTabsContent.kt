@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabkid.presentation.home.HomeScreen
 import com.example.vocabkid.presentation.home.HomeViewModel
+import com.example.vocabkid.presentation.teacher.TeacherHomeScreen
+import com.example.vocabkid.data.repository.VocabKidRepository
 import com.example.vocabkid.presentation.progress.ProgressScreen
 import com.example.vocabkid.presentation.progress.ProgressViewModel
 import com.example.vocabkid.presentation.quiz.QuizScreen
@@ -23,6 +25,8 @@ import com.example.vocabkid.presentation.vocabulary.VocabularyViewModel
 @Composable
 fun MainTabsContent(
     factory: VocabKidViewModelFactory,
+    repository: VocabKidRepository,
+    isTeacher: Boolean,
     selectedRoute: String,
     onSelectedRouteChange: (String) -> Unit,
     isDarkTheme: Boolean,
@@ -33,6 +37,7 @@ fun MainTabsContent(
     onStoryClick: () -> Unit,
     onVocabularyDetailClick: (Long) -> Unit,
     onConversationClick: () -> Unit,
+    onStudentsClick: () -> Unit,
     onArcadeClick: () -> Unit = {}
 ) {
     BackHandler(enabled = selectedRoute != Routes.HOME) {
@@ -41,7 +46,7 @@ fun MainTabsContent(
 
     Crossfade(
         targetState = selectedRoute,
-        animationSpec = tween(durationMillis = 180),
+        animationSpec = tween(durationMillis = 150),
         label = "mainTabContent"
     ) { route ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -82,18 +87,28 @@ fun MainTabsContent(
 
                 else -> {
                     val viewModel: HomeViewModel = viewModel(factory = factory)
-                    HomeScreen(
-                        viewModel = viewModel,
-                        isDarkTheme = isDarkTheme,
-                        onToggleDarkTheme = onToggleDarkTheme,
-                        onPronunciationClick = onPronunciationClick,
-                        bottomContentPadding = bottomContentPadding,
-                        onProfileClick = onProfileClick,
-                        onStoryClick = onStoryClick,
-                        onStudyClick = { onSelectedRouteChange(Routes.STUDY) },
-                        onConversationClick = onConversationClick,
-                        onArcadeClick = onArcadeClick
-                    )
+                    if (isTeacher) {
+                        TeacherHomeScreen(
+                            repository = repository,
+                            bottomContentPadding = bottomContentPadding,
+                            onProfileClick = onProfileClick,
+                            onVocabularyClick = { onSelectedRouteChange(Routes.VOCABULARY) },
+                            onStudentsClick = onStudentsClick
+                        )
+                    } else {
+                        HomeScreen(
+                            viewModel = viewModel,
+                            isDarkTheme = isDarkTheme,
+                            onToggleDarkTheme = onToggleDarkTheme,
+                            onPronunciationClick = onPronunciationClick,
+                            bottomContentPadding = bottomContentPadding,
+                            onProfileClick = onProfileClick,
+                            onStoryClick = onStoryClick,
+                            onStudyClick = { onSelectedRouteChange(Routes.STUDY) },
+                            onConversationClick = onConversationClick,
+                            onArcadeClick = onArcadeClick
+                        )
+                    }
                 }
             }
         }

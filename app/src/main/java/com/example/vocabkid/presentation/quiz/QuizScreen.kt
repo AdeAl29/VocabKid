@@ -1,5 +1,6 @@
 package com.example.vocabkid.presentation.quiz
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -8,7 +9,9 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -20,13 +23,16 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -34,10 +40,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -85,6 +94,7 @@ fun QuizScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .animateContentSize(animationSpec = tween(220))
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 18.dp)
@@ -92,8 +102,58 @@ fun QuizScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (state.categories.isNotEmpty()) {
+                Text(
+                    text = "Kategori",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    state.categories.forEach { category ->
+                        FilterChip(
+                            selected = state.selectedCategory == category,
+                            onClick = { viewModel.selectCategory(category) },
+                            label = { Text(category) },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors()
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val isCurrentCategoryLevel2Unlocked = state.selectedCategory in state.unlockedLevel2Categories
+                    Text("Level", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    (state.levels + if (isCurrentCategoryLevel2Unlocked) emptyList() else listOf(2)).distinct().forEach { level ->
+                        FilterChip(
+                            selected = state.selectedLevel == level,
+                            onClick = { viewModel.selectLevel(level) },
+                            enabled = level != 2 || isCurrentCategoryLevel2Unlocked,
+                            shape = RoundedCornerShape(16.dp),
+                            label = {
+                                if (level == 2 && !isCurrentCategoryLevel2Unlocked) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Lock, contentDescription = "Level terkunci", modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.size(4.dp))
+                                        Text("2")
+                                    }
+                                } else {
+                                    Text("$level")
+                                }
+                            }
+                        )
+                    }
+                }
+            }
             when {
-                state.isLoading -> {
+                state.isLoading && state.questions.isEmpty() -> {
                     CircularProgressIndicator()
                     Text(text = "Menyiapkan soal...")
                 }
@@ -114,6 +174,9 @@ fun QuizScreen(
                 }
 
                 currentQuestion != null -> {
+                    if (state.isLoading) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -123,17 +186,17 @@ fun QuizScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        LinearProgressIndicator(
-                            progress = {
-                                (state.currentIndex + 1).toFloat() / state.questions.size.toFloat()
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = (state.currentIndex + 1).toFloat() / state.questions.size.toFloat(),
+                            animationSpec = tween(320),
+                            label = "quizProgress"
                         )
+                        LinearProgressIndicator(progress = { animatedProgress }, modifier = Modifier.fillMaxWidth())
                     }
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer
                         ),
@@ -146,18 +209,35 @@ fun QuizScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                            ) {
+                                Text(
+                                    text = "${currentQuestion.word.category}  ·  Level ${currentQuestion.word.level}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                                )
+                            }
                             Text(
                                 text = "Apa arti kata ini?",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
+                            AnimatedContent(
+                                targetState = currentQuestion.word.englishWord,
+                                transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(100)) },
+                                label = "quizWord"
+                            ) { word ->
                             Text(
-                                text = currentQuestion.word.englishWord,
+                                text = word,
                                 style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 textAlign = TextAlign.Center
                             )
+                            }
                         }
                     }
 
@@ -187,7 +267,7 @@ fun QuizScreen(
                         Button(
                             onClick = viewModel::nextQuestion,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(
                                 text = if (state.currentIndex == state.questions.lastIndex) {
@@ -282,7 +362,7 @@ private fun ChoiceButton(
                 scaleX = scale
                 scaleY = scale
             },
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             width = if (shouldPop) 2.dp else 1.dp,
             color = borderColor
@@ -295,7 +375,7 @@ private fun ChoiceButton(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 40.dp)
+                .heightIn(min = 48.dp)
                 .padding(vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -351,7 +431,7 @@ private fun AnswerFeedback(
             MaterialTheme.colorScheme.error
         }
         val message = if (correct) {
-            "Benar! Mantap."
+            "Benar! +10 poin. Mantap."
         } else {
             "Hampir! Jawaban yang tepat: $correctAnswer"
         }
@@ -379,7 +459,7 @@ private fun AnswerFeedback(
                     scaleX = 0.98f + pop * 0.02f
                     scaleY = 0.98f + pop * 0.02f
                 },
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = containerColor)
         ) {
             Row(
@@ -504,11 +584,17 @@ private fun QuizResult(
     total: Int,
     onRestartClick: () -> Unit
 ) {
-    val percent = if (total == 0) 0 else (score * 100) / total
+    val maxScore = total * 10
+    val percent = if (maxScore == 0) 0 else (score * 100) / maxScore
+    val ability = when {
+        percent >= 80 -> "Sangat baik! Kamu menguasai kategori ini."
+        percent >= 60 -> "Bagus! Tinggal sedikit lagi untuk lebih mahir."
+        else -> "Ayo latihan lagi. Kamu pasti bisa meningkat!"
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
@@ -527,20 +613,20 @@ private fun QuizResult(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = "$score / $total",
+                text = "$score / $maxScore poin",
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Skor kamu $percent%. Kata yang belum tepat bisa dilatih lagi nanti.",
+                text = "Skor kamu $percent%. $ability",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Button(
                 onClick = onRestartClick,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(text = "Ulangi Kuis")
             }

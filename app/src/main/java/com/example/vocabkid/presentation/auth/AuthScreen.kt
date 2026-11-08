@@ -47,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.example.vocabkid.domain.model.UserRole
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -77,17 +78,19 @@ fun AuthScreen(
     isLoading: Boolean,
     errorMessage: String?,
     successMessage: String?,
-    onLoginSubmit: (String, String) -> Unit,
-    onRegisterSubmit: (String, String, String, String, Int) -> Unit,
+    onLoginSubmit: (String, String, UserRole, Boolean) -> Unit,
+    onRegisterSubmit: (String, String, String, String, Int, UserRole) -> Unit,
     onResetPasswordSubmit: (String) -> Unit
 ) {
     var mode by rememberSaveable { mutableStateOf(AuthMode.Login) }
     var loginIdentity by rememberSaveable { mutableStateOf("") }
+    var loginWithUsername by rememberSaveable { mutableStateOf(false) }
     var registerName by rememberSaveable { mutableStateOf("") }
     var registerNis by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var grade by rememberSaveable { mutableIntStateOf(3) }
+    var role by rememberSaveable { mutableStateOf(UserRole.MURID) }
     var isResetDialogOpen by rememberSaveable { mutableStateOf(false) }
     var resetEmail by rememberSaveable { mutableStateOf("") }
     var hasResetAttempted by rememberSaveable { mutableStateOf(false) }
@@ -136,6 +139,8 @@ fun AuthScreen(
                 onModeChange = { mode = it },
                 loginIdentity = loginIdentity,
                 onLoginIdentityChange = { loginIdentity = it },
+                loginWithUsername = loginWithUsername,
+                onLoginWithUsernameChange = { loginWithUsername = it },
                 registerName = registerName,
                 onRegisterNameChange = { registerName = it },
                 registerNis = registerNis,
@@ -146,18 +151,20 @@ fun AuthScreen(
                 onPasswordChange = { password = it },
                 grade = grade,
                 onGradeChange = { grade = it },
+                role = role,
+                onRoleChange = { role = it },
                 isLoading = isLoading,
                 errorMessage = errorMessage,
                 successMessage = successMessage,
                 onForgotPasswordClick = {
-                    resetEmail = loginIdentity
+                    resetEmail = loginIdentity.takeUnless { loginWithUsername }.orEmpty()
                     hasResetAttempted = false
                     isResetDialogOpen = true
                 },
                 onSubmit = {
                     when (mode) {
-                        AuthMode.Login -> onLoginSubmit(loginIdentity, password)
-                        AuthMode.Register -> onRegisterSubmit(registerName, registerNis, email, password, grade)
+                        AuthMode.Login -> onLoginSubmit(loginIdentity, password, role, loginWithUsername)
+                        AuthMode.Register -> onRegisterSubmit(registerName, registerNis, email, password, grade, role)
                     }
                 }
             )
@@ -171,6 +178,8 @@ private fun AuthPanel(
     onModeChange: (AuthMode) -> Unit,
     loginIdentity: String,
     onLoginIdentityChange: (String) -> Unit,
+    loginWithUsername: Boolean,
+    onLoginWithUsernameChange: (Boolean) -> Unit,
     registerName: String,
     onRegisterNameChange: (String) -> Unit,
     registerNis: String,
@@ -181,6 +190,8 @@ private fun AuthPanel(
     onPasswordChange: (String) -> Unit,
     grade: Int,
     onGradeChange: (Int) -> Unit,
+    role: UserRole,
+    onRoleChange: (UserRole) -> Unit,
     isLoading: Boolean,
     errorMessage: String?,
     successMessage: String?,
@@ -210,13 +221,22 @@ private fun AuthPanel(
                 label = "authFormMode"
             ) { targetMode ->
                 when (targetMode) {
-                    AuthMode.Login -> LoginFields(
-                        identity = loginIdentity,
-                        onIdentityChange = onLoginIdentityChange,
-                        password = password,
-                        onPasswordChange = onPasswordChange,
-                        onForgotPasswordClick = onForgotPasswordClick
-                    )
+                    AuthMode.Login -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        RolePicker(
+                            selectedRole = role,
+                            onRoleSelected = onRoleChange,
+                            title = "Masuk sebagai"
+                        )
+                        LoginFields(
+                            identity = loginIdentity,
+                            onIdentityChange = onLoginIdentityChange,
+                            loginWithUsername = loginWithUsername,
+                            onLoginWithUsernameChange = onLoginWithUsernameChange,
+                            password = password,
+                            onPasswordChange = onPasswordChange,
+                            onForgotPasswordClick = onForgotPasswordClick
+                        )
+                    }
 
                     AuthMode.Register -> RegisterFields(
                         name = registerName,
@@ -228,7 +248,9 @@ private fun AuthPanel(
                         password = password,
                         onPasswordChange = onPasswordChange,
                         grade = grade,
-                        onGradeChange = onGradeChange
+                        onGradeChange = onGradeChange,
+                        role = role,
+                        onRoleChange = onRoleChange
                     )
                 }
             }
@@ -393,6 +415,8 @@ private fun AuthModeTab(
 private fun LoginFields(
     identity: String,
     onIdentityChange: (String) -> Unit,
+    loginWithUsername: Boolean,
+    onLoginWithUsernameChange: (Boolean) -> Unit,
     password: String,
     onPasswordChange: (String) -> Unit,
     onForgotPasswordClick: () -> Unit
@@ -408,21 +432,25 @@ private fun LoginFields(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = !loginWithUsername, onClick = { onLoginWithUsernameChange(false) }, label = { Text("Email") })
+            FilterChip(selected = loginWithUsername, onClick = { onLoginWithUsernameChange(true) }, label = { Text("Username") })
+        }
         OutlinedTextField(
             value = identity,
             onValueChange = onIdentityChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
+            label = { Text(if (loginWithUsername) "Username" else "Email") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            keyboardOptions = KeyboardOptions(keyboardType = if (loginWithUsername) KeyboardType.Ascii else KeyboardType.Email),
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Email,
+                    imageVector = if (loginWithUsername) Icons.Default.Person else Icons.Default.Email,
                     contentDescription = null
                 )
             }
         )
-        OutlinedTextField(
+        if (!loginWithUsername) OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
@@ -437,7 +465,7 @@ private fun LoginFields(
                 )
             }
         )
-        Text(
+        if (!loginWithUsername) Text(
             text = "Lupa password?",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
@@ -572,11 +600,13 @@ private fun RegisterFields(
     password: String,
     onPasswordChange: (String) -> Unit,
     grade: Int,
-    onGradeChange: (Int) -> Unit
+    onGradeChange: (Int) -> Unit,
+    role: UserRole,
+    onRoleChange: (UserRole) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "Daftar siswa",
+            text = "Daftar akun",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -584,7 +614,7 @@ private fun RegisterFields(
             value = name,
             onValueChange = onNameChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Nama siswa") },
+            label = { Text(if (role == UserRole.GURU) "Nama guru" else "Nama siswa") },
             singleLine = true,
             leadingIcon = {
                 Icon(
@@ -593,25 +623,23 @@ private fun RegisterFields(
                 )
             }
         )
-        OutlinedTextField(
-            value = nis,
-            onValueChange = { value -> onNisChange(value.filter { it.isDigit() }) },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("NIS (Nomor Induk Siswa)") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Badge,
-                    contentDescription = null
-                )
-            }
-        )
+        RolePicker(selectedRole = role, onRoleSelected = onRoleChange)
+        if (role == UserRole.MURID) {
+            OutlinedTextField(
+                value = nis,
+                onValueChange = { value -> onNisChange(value.filter { it.isDigit() }) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("NIS (Nomor Induk Siswa)") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                leadingIcon = { Icon(imageVector = Icons.Default.Badge, contentDescription = null) }
+            )
+        }
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email orang tua") },
+            label = { Text(if (role == UserRole.GURU) "Email guru" else "Email orang tua") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             leadingIcon = {
@@ -620,6 +648,15 @@ private fun RegisterFields(
                     contentDescription = null
                 )
             }
+        )
+        Text(
+            text = if (role == UserRole.GURU) {
+                "Gunakan email aktif yang digunakan untuk mengelola kelas."
+            } else {
+                "Gunakan email orang tua untuk akun murid."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         OutlinedTextField(
             value = password,
@@ -636,10 +673,30 @@ private fun RegisterFields(
                 )
             }
         )
-        GradePicker(
-            selectedGrade = grade,
-            onGradeSelected = onGradeChange
-        )
+        if (role == UserRole.MURID) {
+            GradePicker(selectedGrade = grade, onGradeSelected = onGradeChange)
+        }
+    }
+}
+
+@Composable
+private fun RolePicker(
+    selectedRole: UserRole,
+    onRoleSelected: (UserRole) -> Unit,
+    title: String = "Daftar sebagai"
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            UserRole.entries.forEach { role ->
+                FilterChip(
+                    selected = selectedRole == role,
+                    onClick = { onRoleSelected(role) },
+                    label = { Text(role.label) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
     }
 }
 

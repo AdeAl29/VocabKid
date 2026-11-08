@@ -1,11 +1,5 @@
 package com.example.vocabkid.presentation.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -28,33 +22,13 @@ fun SkyThemeBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "skyBackground")
-    val drift by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 36000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "cloudDrift"
-    )
-    val twinkle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "starTwinkle"
-    )
-
     Box(modifier = modifier.fillMaxSize()) {
         val veilColor = MaterialTheme.colorScheme.surface
         Canvas(modifier = Modifier.fillMaxSize()) {
             if (isDarkTheme) {
-                drawNightSky(twinkle = twinkle, veilColor = veilColor)
+                drawNightSky(twinkle = 0.5f, veilColor = veilColor)
             } else {
-                drawDaySky(drift = drift, veilColor = veilColor)
+                drawDaySky(drift = 0f, veilColor = veilColor)
             }
         }
         content()

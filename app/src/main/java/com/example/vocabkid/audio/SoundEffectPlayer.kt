@@ -36,7 +36,6 @@ class SoundEffectPlayer(context: Context) {
     private val flipCardSoundId: Int
     private val correctAnswerSoundId: Int
     private val wrongAnswerSoundId: Int
-    private val tapSoundId: Int
     private val selectSoundId: Int
 
     init {
@@ -53,12 +52,7 @@ class SoundEffectPlayer(context: Context) {
         flipCardSoundId = load(R.raw.sfx_flip_card)
         correctAnswerSoundId = load(R.raw.sfx_correct)
         wrongAnswerSoundId = load(R.raw.sfx_wrong)
-        tapSoundId = load(R.raw.sfx_tap)
         selectSoundId = load(R.raw.sfx_select)
-    }
-
-    fun playTap() {
-        play(tapSoundId, volume = 0.18f)
     }
 
     fun playSelect() {
@@ -144,22 +138,7 @@ fun PressSoundEffectLayer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val player = rememberSoundEffectPlayer()
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .pointerInput(player) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        if (event.changes.any { it.changedToDownIgnoreConsumed() }) {
-                            player.playTap()
-                        }
-                    }
-                }
-            }
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
         content()
     }
 }

@@ -25,12 +25,23 @@ class StudyViewModel(
     var isReviewing by mutableStateOf(false)
         private set
 
+    private var repeatedCard by mutableStateOf<WordWithProgressEntity?>(null)
+
+    fun currentCard(): WordWithProgressEntity? {
+        return repeatedCard ?: dueCards.value.firstOrNull()
+    }
+
     fun revealMeaning() {
         showMeaning = true
     }
 
-    fun review(wordId: Long, quality: Int) {
+    fun review(wordId: Long, quality: Int, repeatImmediately: Boolean = false) {
         if (isReviewing) return
+        val cardToRepeat = if (repeatImmediately) {
+            repeatedCard ?: dueCards.value.firstOrNull { it.word.id == wordId }
+        } else {
+            null
+        }
         viewModelScope.launch {
             isReviewing = true
             try {
@@ -39,6 +50,7 @@ class StudyViewModel(
                     quality = quality,
                     mode = ReviewMode.FLASHCARD
                 )
+                repeatedCard = cardToRepeat
                 showMeaning = false
             } finally {
                 isReviewing = false

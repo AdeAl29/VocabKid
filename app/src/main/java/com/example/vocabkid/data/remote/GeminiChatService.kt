@@ -1,7 +1,11 @@
 package com.example.vocabkid.data.remote
 
 import com.example.vocabkid.BuildConfig
+import com.google.ai.client.generativeai.Chat
 import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.flow.Flow
@@ -9,36 +13,77 @@ import kotlinx.coroutines.flow.flow
 
 /**
  * Wrapper for Google Gemini AI API to power the VocabKid Chat Assistant.
- * Uses a persistent Chat session for multi-turn context-aware conversations.
+ * Uses a persistent Chat session with child-safe content filters and model fallback.
  */
 class GeminiChatService {
 
     private val apiKey: String = BuildConfig.GEMINI_API_KEY
+    private var learnerContextBlock: String = ""
+    private var activeModelIndex: Int = 0
 
-    private val model by lazy {
-        GenerativeModel(
-            modelName = "gemini-2.0-flash-lite",
+    private val childSafetySettings = listOf(
+        SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.LOW_AND_ABOVE),
+        SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.LOW_AND_ABOVE),
+        SafetySetting(HarmCategory.SEXUALLY_EXPLICIT, BlockThreshold.LOW_AND_ABOVE),
+        SafetySetting(HarmCategory.DANGEROUS_CONTENT, BlockThreshold.LOW_AND_ABOVE)
+    )
+
+    private fun createModel(modelName: String): GenerativeModel {
+        val fullInstruction = if (learnerContextBlock.isBlank()) {
+            SYSTEM_INSTRUCTION
+        } else {
+            "$SYSTEM_INSTRUCTION\n\n$learnerContextBlock"
+        }
+        return GenerativeModel(
+            modelName = modelName,
             apiKey = apiKey,
             generationConfig = generationConfig {
-                temperature = 0.75f
+                temperature = 0.7f
                 topP = 0.95f
                 topK = 40
                 maxOutputTokens = 1024
             },
+            safetySettings = childSafetySettings,
             systemInstruction = content {
-                text(SYSTEM_INSTRUCTION)
+                text(fullInstruction)
             }
         )
     }
 
-    private var chat = model.startChat(history = emptyList())
+    private var chat: Chat = createModel(MODEL_CANDIDATES.first()).startChat(history = emptyList())
 
     val isApiKeyConfigured: Boolean
         get() = apiKey.isNotBlank()
 
     /**
+     * Updates the dynamic learner context (e.g. student name, grade, and difficult words)
+     * so the AI assistant can personalize explanations and examples.
+     */
+    fun updateLearnerContext(
+        studentName: String?,
+        grade: Int?,
+        difficultWords: List<String>
+    ) {
+        val builder = StringBuilder("## Konteks Siswa Saat Ini\n")
+        if (!studentName.isNullOrBlank()) {
+            builder.append("- Nama siswa: $studentName\n")
+        }
+        if (grade != null) {
+            builder.append("- Kelas: $grade SD\n")
+        }
+        if (difficultWords.isNotEmpty()) {
+            builder.append("- Kata yang masih sering salah / perlu dilatih: ${difficultWords.joinToString(", ")}\n")
+        }
+        val newContext = builder.toString().trim()
+        if (newContext != learnerContextBlock) {
+            learnerContextBlock = newContext
+            resetChat()
+        }
+    }
+
+    /**
      * Send a user message and receive the AI response as a collected string.
-     * Uses streaming internally for better latency perception.
+     * Uses streaming internally for better latency perception and falls back to secondary model if needed.
      */
     fun sendMessage(userMessage: String): Flow<String> = flow {
         if (!isApiKeyConfigured) {
@@ -60,13 +105,41 @@ class GeminiChatService {
                 emit("Maaf, saya tidak bisa menjawab saat ini. Coba tanya lagi ya! 😊")
             }
         } catch (e: Exception) {
+            // Try fallback model once if model not found or overloaded
+            val shouldFallback = activeModelIndex < MODEL_CANDIDATES.lastIndex &&
+                (e.message?.contains("not found", ignoreCase = true) == true ||
+                    e.message?.contains("overloaded", ignoreCase = true) == true ||
+                    e.message?.contains("503", ignoreCase = true) == true)
+
+            if (shouldFallback) {
+                activeModelIndex++
+                chat = createModel(MODEL_CANDIDATES[activeModelIndex]).startChat(history = emptyList())
+                try {
+                    val retryResponse = chat.sendMessageStream(userMessage)
+                    var fullRetryText = ""
+                    retryResponse.collect { chunk ->
+                        val text = chunk.text
+                        if (text != null) {
+                            fullRetryText += text
+                            emit(fullRetryText)
+                        }
+                    }
+                    if (fullRetryText.isNotBlank()) return@flow
+                } catch (_: Exception) {
+                    // Proceed to user-friendly error message below
+                }
+            }
+
             val errorMessage = when {
                 e.message?.contains("API_KEY", ignoreCase = true) == true ->
                     "⚠️ API Key tidak valid. Pastikan key yang benar sudah dimasukkan di `local.properties`."
                 e.message?.contains("quota", ignoreCase = true) == true ->
                     "⏳ Batas penggunaan API tercapai. Coba lagi dalam beberapa menit ya!"
+                e.message?.contains("SAFETY", ignoreCase = true) == true ->
+                    "🛡️ Maaf, pertanyaan ini tidak dapat dijawab karena alasan keamanan konten anak. Yuk tanya seputar kosakata bahasa Inggris! 🌟"
                 e.message?.contains("network", ignoreCase = true) == true ||
-                e.message?.contains("connect", ignoreCase = true) == true ->
+                e.message?.contains("connect", ignoreCase = true) == true ||
+                e.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
                     "📡 Tidak ada koneksi internet. Pastikan perangkat terhubung ke internet ya!"
                 e.message?.contains("timeout", ignoreCase = true) == true ->
                     "⏰ Waktu koneksi habis. Coba kirim ulang pertanyaanmu ya!"
@@ -81,10 +154,15 @@ class GeminiChatService {
      * Reset the chat session for a fresh conversation.
      */
     fun resetChat() {
-        chat = model.startChat(history = emptyList())
+        chat = createModel(MODEL_CANDIDATES[activeModelIndex]).startChat(history = emptyList())
     }
 
     private companion object {
+        val MODEL_CANDIDATES = listOf(
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash"
+        )
+
         const val SYSTEM_INSTRUCTION = """
 Kamu adalah **VocabKid Assistant** 🤖 — asisten AI yang ramah, ceria, dan pintar untuk aplikasi belajar kosakata bahasa Inggris bernama **VocabKid**.
 
@@ -113,6 +191,7 @@ Jika ditanya tentang cara menggunakan fitur, jelaskan berdasarkan informasi beri
 - **🗣️ Pronunciation**: Latihan pengucapan kata bahasa Inggris. Dengarkan cara pengucapan yang benar dan coba ulangi.
 - **💬 Conversation**: Latihan percakapan bahasa Inggris dengan berbagai skenario (di restoran, sekolah, toko, dll). Pilih respons untuk berlatih dialog.
 - **📖 Story**: Baca cerita menarik dalam bahasa Inggris sambil menjawab quiz di tengah cerita.
+- **🕹️ Arcade**: Taman bermain kata seperti Memory Flip untuk mencocokkan kartu kosakata sambil bermain.
 - **🏠 Home**: Halaman utama yang menampilkan ringkasan profil, statistik harian, dan akses cepat ke semua fitur.
 
 ### 3. Tips Belajar

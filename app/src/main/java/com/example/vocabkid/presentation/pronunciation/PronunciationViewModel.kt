@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabkid.data.repository.VocabKidRepository
 import com.example.vocabkid.data.local.entity.WordWithProgressEntity
+import com.example.vocabkid.domain.model.ReviewMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,7 @@ data class PronunciationUiState(
     val isLoading: Boolean = true,
     val sessionCorrect: Int = 0,
     val sessionTotal: Int = 0,
+    val score: Int = 0,
     val streak: Int = 0,
     val wordIndex: Int = 0,
     val totalWords: Int = 0
@@ -107,8 +109,18 @@ class PronunciationViewModel(
             isListening = false,
             streak = newStreak,
             sessionCorrect = newCorrect,
-            sessionTotal = newTotal
+            sessionTotal = newTotal,
+            score = newCorrect * 10
         )
+
+        viewModelScope.launch {
+            repository.reviewWord(
+                wordId = currentWord.word.id,
+                quality = if (isCorrect) 4 else 0,
+                mode = ReviewMode.PRONUNCIATION,
+                isCorrectOverride = isCorrect
+            )
+        }
     }
 
     fun onSpeechPartialResult(partialText: String) {

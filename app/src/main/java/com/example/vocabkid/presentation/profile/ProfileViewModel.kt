@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabkid.data.repository.VocabKidRepository
 import com.example.vocabkid.domain.model.StudentAvatar
+import com.example.vocabkid.domain.model.UserRole
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -90,7 +91,13 @@ class ProfileViewModel(
         viewModelScope.launch {
             isSaving = true
             try {
-                repository.saveStudent(cleanName, grade, avatar, nis = nis.trim())
+                repository.saveStudent(
+                    name = cleanName,
+                    grade = grade,
+                    avatar = avatar,
+                    nis = nis.trim(),
+                    role = UserRole.fromStorage(student.value?.role)
+                )
                 errorMessage = null
                 successMessage = "Profil berhasil disimpan."
             } catch (exception: Exception) {

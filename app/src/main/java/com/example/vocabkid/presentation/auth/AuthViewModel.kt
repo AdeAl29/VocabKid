@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabkid.data.repository.VocabKidRepository
+import com.example.vocabkid.domain.model.UserRole
 import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
@@ -38,22 +39,32 @@ class AuthViewModel(
     fun login(
         email: String,
         password: String,
+        role: UserRole,
+        useUsername: Boolean,
         onSuccess: () -> Unit
     ) {
-        val cleanEmail = email.trim()
+        val identity = email.trim()
+        val cleanEmail = identity.lowercase()
         successMessage = null
-        if (!validateEmailPassword(cleanEmail, password)) return
+        if (useUsername) {
+            if (identity.isBlank()) {
+                errorMessage = "Username wajib diisi."
+                return
+            }
+        } else if (!validateEmailPassword(cleanEmail, password)) return
 
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             successMessage = null
             try {
-                val result = firebaseAuth.signInWithEmailAndPassword(
-                    cleanEmail,
-                    password
-                ).awaitResult()
-                ensureLocalStudent(result.user)
+                if (useUsername) {
+                    firebaseAuth.signOut()
+                    repository.startUsernameSession(identity.trim(), role)
+                } else {
+                    val result = firebaseAuth.signInWithEmailAndPassword(cleanEmail, password).awaitResult()
+                    ensureLocalStudent(result.user, role)
+                }
                 onSuccess()
             } catch (exception: Exception) {
                 errorMessage = friendlyAuthMessage(exception)
@@ -69,15 +80,16 @@ class AuthViewModel(
         email: String,
         password: String,
         grade: Int,
+        role: UserRole,
         onSuccess: () -> Unit
     ) {
         val cleanName = name.trim()
-        val cleanEmail = email.trim()
+        val cleanEmail = email.trim().lowercase()
         val cleanNis = nis.trim()
         successMessage = null
 
         if (cleanName.isBlank()) {
-            errorMessage = "Nama siswa wajib diisi."
+            errorMessage = "Nama wajib diisi."
             return
         }
         if (!validateEmailPassword(cleanEmail, password)) return
@@ -100,7 +112,8 @@ class AuthViewModel(
                 repository.saveStudent(
                     name = cleanName,
                     grade = grade,
-                    nis = cleanNis
+                    nis = cleanNis,
+                    role = role
                 )
                 onSuccess()
             } catch (exception: Exception) {
@@ -136,11 +149,16 @@ class AuthViewModel(
         password: String
     ): Boolean {
         if (!validateEmail(email)) return false
+        if (!validatePassword(password)) return false
+        errorMessage = null
+        return true
+    }
+
+    private fun validatePassword(password: String): Boolean {
         if (password.length < 6) {
             errorMessage = "Password minimal 6 karakter."
             return false
         }
-        errorMessage = null
         return true
     }
 
@@ -157,12 +175,20 @@ class AuthViewModel(
         return true
     }
 
-    private suspend fun ensureLocalStudent(user: FirebaseUser?) {
-        if (repository.observeStudent().first() != null) return
+    private suspend fun ensureLocalStudent(user: FirebaseUser?, selectedRole: UserRole) {
+        val existingStudent = repository.observeStudent().first()
+        if (existingStudent != null) {
+            val actualRole = UserRole.fromStorage(existingStudent.role)
+            if (actualRole != selectedRole) {
+                throw IllegalStateException("Akun ini terdaftar sebagai ${actualRole.label}. Pilih role yang sesuai untuk masuk.")
+            }
+            return
+        }
 
         repository.saveStudent(
             name = defaultStudentName(user),
-            grade = 3
+            grade = 3,
+            role = selectedRole
         )
     }
 
@@ -182,10 +208,12 @@ class AuthViewModel(
     private fun friendlyAuthMessage(exception: Throwable): String {
         return when (exception) {
             is FirebaseNetworkException -> "Koneksi internet belum stabil. Coba lagi sebentar."
+            is IllegalArgumentException -> exception.message ?: "Data akun belum benar."
             is FirebaseAuthUserCollisionException -> "Email ini sudah terdaftar. Silakan masuk."
             is FirebaseAuthWeakPasswordException -> "Password terlalu lemah. Gunakan minimal 6 karakter."
             is FirebaseAuthInvalidUserException -> "Akun dengan email ini belum ditemukan."
             is FirebaseAuthInvalidCredentialsException -> "Email atau password belum cocok."
+            is IllegalStateException -> exception.message ?: "Role akun tidak sesuai."
             else -> "Autentikasi belum berhasil. Coba lagi."
         }
     }

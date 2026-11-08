@@ -1242,7 +1242,97 @@ object InitialVocabulary {
             "slowly|perlahan",
             "quickly|dengan cepat",
             "carefully|dengan hati-hati"
-        )
+        ),
+        // Level 2: vocabulary tambahan agar setiap kategori punya kuis lanjutan.
+        categoryAtLevel("Animal", 2, "penguin|penguin", "dolphin|lumba-lumba", "giraffe|jerapah", "crocodile|buaya", "elephant|gajah", "kangaroo|kanguru", "octopus|gurita", "rhinoceros|badak", "peacock|merak", "squirrel|tupai", "cheetah|citah", "koala|koala", "gorilla|gorila", "flamingo|flamingo", "eagle|elang"),
+        categoryAtLevel("Fruit", 2, "avocado|alpukat", "blueberry|bluberi", "watermelon|semangka", "pineapple|nanas", "strawberry|stroberi", "papaya|pepaya", "grapefruit|jeruk bali", "peach|persik", "pear|pir", "cherry|ceri", "mango|mangga", "kiwi|kiwi", "plum|prem", "apricot|aprikot", "raspberry|rasberi"),
+        categoryAtLevel("Vegetable", 2, "spinach|bayam", "broccoli|brokoli", "cabbage|kubis", "eggplant|terong", "mushroom|jamur", "pumpkin|labu", "radish|lobak", "celery|seledri", "cauliflower|kembang kol", "asparagus|asparagus", "lettuce|selada", "zucchini|zukini", "beetroot|bit", "artichoke|artičoke", "kale|kale"),
+        categoryAtLevel("Food", 2, "noodles|mi", "sandwich|roti lapis", "pancake|panekuk", "omelet|telur dadar", "porridge|bubur", "dumpling|pangsit", "cereal|sereal", "sausage|sosis", "biscuit|biskuit", "lasagna|lasagna", "meatball|bakso", "curry|kari", "pie|pai", "roast chicken|ayam panggang", "mashed potatoes|kentang tumbuk"),
+        categoryAtLevel("Drink", 2, "smoothie|minuman buah", "lemonade|limun", "milkshake|susu kocok", "cocoa|kakao", "herbal tea|teh herbal", "sparkling water|air berkarbonasi", "iced tea|teh dingin", "hot chocolate|cokelat panas", "orange juice|jus jeruk", "coconut water|air kelapa", "grape juice|jus anggur", "green tea|teh hijau", "espresso|espresso", "ginger tea|teh jahe", "apple cider|sari apel"),
+        categoryAtLevel("School", 2, "textbook|buku pelajaran", "notebook|buku catatan", "blackboard|papan tulis", "principal|kepala sekolah", "uniform|seragam", "dictionary|kamus", "calculator|kalkulator", "scissors|gunting", "glue|lem", "timetable|jadwal pelajaran", "classmate|teman sekelas", "schoolyard|halaman sekolah", "exam|ujian", "homework|pekerjaan rumah", "projector|proyektor"),
+        categoryAtLevel("Family", 2, "grandparent|kakek atau nenek", "grandchild|cucu", "nephew|keponakan laki-laki", "niece|keponakan perempuan", "relative|kerabat", "stepfather|ayah tiri", "stepmother|ibu tiri", "twin|anak kembar", "only child|anak tunggal", "ancestor|leluhur", "cousin|sepupu", "husband|suami", "wife|istri", "sibling|saudara kandung", "mother-in-law|ibu mertua"),
+        categoryAtLevel("Color", 2, "turquoise|biru kehijauan", "maroon|merah marun", "navy|biru tua", "beige|krem", "silver|perak", "gold|emas", "violet|ungu", "teal|hijau kebiruan", "coral|jingga kemerahan", "indigo|nila", "lavender|lavender", "burgundy|merah anggur", "ochre|oker", "magenta|magenta", "charcoal|abu-abu arang"),
+        categoryAtLevel("Number", 2, "eleven|sebelas", "twelve|dua belas", "twenty|dua puluh", "hundred|seratus", "thousand|seribu", "thirteen|tiga belas", "fourteen|empat belas", "fifteen|lima belas", "thirty|tiga puluh", "million|satu juta", "sixteen|enam belas", "seventeen|tujuh belas", "eighteen|delapan belas", "nineteen|sembilan belas", "forty|empat puluh"),
+        categoryAtLevel("Action", 2, "whisper|berbisik", "measure|mengukur", "carry|membawa", "borrow|meminjam", "repair|memperbaiki", "climb|memanjat", "deliver|mengantarkan", "discover|menemukan", "protect|melindungi", "prepare|menyiapkan", "fold|melipat", "pour|menuangkan", "dig|menggali", "sew|menjahit", "sweep|menyapu"),
+        categoryAtLevel("Body", 2, "shoulder|bahu", "elbow|siku", "ankle|pergelangan kaki", "forehead|dahi", "thumb|ibu jari", "wrist|pergelangan tangan", "chin|dagu", "cheek|pipi", "eyebrow|alis", "heel|tumit", "palm|telapak tangan", "knee|lutut", "neck|leher", "waist|pinggang", "chest|dada"),
+        categoryAtLevel("Clothing", 2, "jacket|jaket", "scarf|syal", "glove|sarung tangan", "sandal|sandal", "necklace|kalung", "belt|ikat pinggang", "boots|sepatu bot", "sweater|sweter", "pajamas|piyama", "raincoat|jas hujan", "skirt|rok", "tie|dasi", "hoodie|hoodie", "mittens|sarung tangan wol", "suit|setelan"),
+        categoryAtLevel("Home", 2, "balcony|balkon", "basement|ruang bawah tanah", "curtain|gorden", "pillow|bantal", "bookshelf|rak buku", "ceiling|langit-langit", "drawer|laci", "carpet|karpet", "garage|garasi", "chimney|cerobong asap", "staircase|tangga", "fence|pagar", "porch|beranda", "attic|loteng", "faucet|keran"),
+        categoryAtLevel("Object", 2, "umbrella|payung", "backpack|ransel", "flashlight|senter", "calendar|kalender", "envelope|amplop", "binoculars|teropong", "compass|kompas", "battery|baterai", "toolbox|kotak perkakas", "magnifying glass|kaca pembesar", "stapler|stapler", "thermos|termos", "telescope|teleskop", "sewing machine|mesin jahit", "padlock|gembok"),
+        categoryAtLevel("Place", 2, "museum|museum", "stadium|stadion", "airport|bandara", "factory|pabrik", "pharmacy|apotek", "harbor|pelabuhan", "library|perpustakaan", "bakery|toko roti", "laboratory|laboratorium", "theater|teater", "mosque|masjid", "temple|kuil", "courthouse|gedung pengadilan", "aquarium|akuarium", "warehouse|gudang"),
+        categoryAtLevel("Nature", 2, "waterfall|air terjun", "volcano|gunung berapi", "valley|lembah", "island|pulau", "cave|gua", "glacier|gletser", "meadow|padang rumput", "cliff|tebing", "reef|terumbu", "swamp|rawa", "desert|gurun", "jungle|hutan rimba", "shore|pesisir", "stream|anak sungai", "mud|lumpur"),
+        categoryAtLevel("Weather", 2, "thunder|guruh", "lightning|petir", "drizzle|gerimis", "hurricane|badai topan", "forecast|prakiraan", "hail|hujan es", "foggy|berkabut", "humid|lembap", "breeze|angin sepoi-sepoi", "drought|kekeringan", "overcast|mendung", "freezing|sangat dingin", "heatwave|gelombang panas", "rainbow|pelangi", "snowfall|hujan salju"),
+        categoryAtLevel("Time", 2, "weekday|hari kerja", "weekend|akhir pekan", "midnight|tengah malam", "noon|tengah hari", "season|musim", "century|abad", "decade|dasawarsa", "dawn|fajar", "dusk|senja", "moment|momen", "fortnight|dua minggu", "quarter|seperempat tahun", "anniversary|hari jadi", "schedule|jadwal", "duration|durasi"),
+        categoryAtLevel("Feeling", 2, "grateful|bersyukur", "nervous|gugup", "proud|bangga", "lonely|kesepian", "surprised|terkejut", "curious|ingin tahu", "confident|percaya diri", "jealous|cemburu", "relieved|lega", "disappointed|kecewa", "embarrassed|malu", "hopeful|penuh harapan", "frustrated|frustrasi", "peaceful|damai", "excited|bersemangat"),
+        categoryAtLevel("Adjective", 2, "ancient|kuno", "modern|modern", "narrow|sempit", "crowded|ramai", "polite|sopan", "enormous|sangat besar", "shallow|dangkal", "smooth|halus", "brave|berani", "honest|jujur", "fragile|mudah pecah", "generous|dermawan", "accurate|akurat", "rare|langka", "ordinary|biasa"),
+        categoryAtLevel("Job", 2, "engineer|insinyur", "scientist|ilmuwan", "journalist|wartawan", "dentist|dokter gigi", "architect|arsitek", "mechanic|montir", "photographer|fotografer", "farmer|petani", "lawyer|pengacara", "veterinarian|dokter hewan", "plumber|tukang ledeng", "tailor|penjahit", "accountant|akuntan", "electrician|tukang listrik", "translator|penerjemah"),
+        categoryAtLevel("Position", 2, "between|di antara", "beside|di samping", "behind|di belakang", "across|di seberang", "inside|di dalam", "above|di atas", "below|di bawah", "outside|di luar", "opposite|berhadapan", "along|sepanjang", "beneath|di bawah", "beyond|di balik", "within|di dalam batas", "nearby|di dekat", "around|di sekitar"),
+        categoryAtLevel("Expression", 2, "congratulations|selamat", "good luck|semoga berhasil", "well done|kerja bagus", "see you|sampai jumpa", "take care|hati-hati", "you're welcome|sama-sama", "of course|tentu saja", "I'm not sure|saya tidak yakin", "that's right|itu benar", "have a nice day|semoga harimu menyenangkan", "never mind|tidak apa-apa", "excuse me|permisi", "what a pity|sayang sekali", "sounds good|kedengarannya bagus", "I agree|saya setuju"),
+        categoryAtLevel(
+            "Transportation", 2,
+            "scooter|skuter",
+            "subway|kereta bawah tanah",
+            "helicopter|helikopter",
+            "tram|trem",
+            "ferry|kapal feri",
+            "sailboat|perahu layar",
+            "canoe|kano",
+            "trolleybus|bus listrik",
+            "pickup truck|truk pikap",
+            "sailplane|pesawat layang",
+            "monorail|monorel",
+            "rickshaw|becak",
+            "minivan|minivan",
+            "cruise ship|kapal pesiar",
+            "cable car|kereta gantung"
+        ),
+        // Tambahan unik memastikan setiap kategori memiliki setidaknya 10 kata Level 2,
+        // termasuk kata yang sebelumnya sudah tercatat di Level 1.
+        categoryAtLevel("Animal", 2, "badger|luwak", "beaver|berang-berang", "bison|bison", "boar|babi hutan", "chameleon|bunglon", "crane|burung jenjang", "hyena|hiena", "iguana|iguana", "lemur|lemur", "mongoose|garangan", "moose|rusa besar", "pelican|pelikan", "raccoon|rakun", "reindeer|rusa kutub"),
+        categoryAtLevel("Fruit", 2, "cantaloupe|blewah", "coconut|kelapa", "cranberry|kranberi", "fig|buah ara", "guava|jambu biji", "honeydew|melon madu", "lime|jeruk nipis", "lychee|leci", "nectarine|nektarin", "passion fruit|markisa", "persimmon|kesemek", "pomegranate|delima", "starfruit|belimbing", "tangerine|jeruk keprok", "mulberry|murbei"),
+        categoryAtLevel("Vegetable", 2, "arugula|arugula", "bok choy|pakcoy", "butternut squash|labu madu", "chard|daun bit", "fennel|adas", "jicama|bengkuang", "leek|bawang prei", "okra|okra", "parsnip|ubi pastinaka", "rutabaga|rutabaga", "shallot|bawang merah", "snap peas|kapri", "turnip|lobak putih", "watercress|selada air"),
+        categoryAtLevel("Food", 2, "bagel|bagel", "burrito|burrito", "casserole|hidangan panggang", "cheesecake|kue keju", "falafel|falafel", "frittata|frittata", "gnocchi|gnocchi", "kebab|kebab", "paella|paela", "risotto|risoto", "sushi|sushi", "taco|taco"),
+        categoryAtLevel("Drink", 2, "buttermilk|susu mentega", "chai|teh chai", "espresso|espresso", "kombucha|kombucha", "matcha|matcha", "mocha|moka", "root beer|root beer", "sarsaparilla|sarsaparila", "tonic water|air tonik"),
+        categoryAtLevel("School", 2, "attendance|kehadiran", "auditorium|aula", "cafeteria|kantin", "curriculum|kurikulum", "detention|hukuman sepulang sekolah", "faculty|staf pengajar", "grade|tingkat kelas", "locker|loker", "semester|semester", "syllabus|silabus", "tuition|uang sekolah"),
+        categoryAtLevel("Family", 2, "aunt|bibi", "brother-in-law|ipar laki-laki", "daughter-in-law|menantu perempuan", "father-in-law|ayah mertua", "fiance|tunangan laki-laki", "godmother|ibu baptis", "half-sister|saudara tiri perempuan", "mother|ibu", "uncle|paman"),
+        categoryAtLevel("Color", 2, "amber|ambar", "azure|biru langit", "cream|krem", "crimson|merah tua", "cyan|sian", "emerald|zamrud", "ivory|gading", "lilac|ungu muda", "ochre|oker", "scarlet|merah menyala", "tan|cokelat muda"),
+        categoryAtLevel("Number", 2, "billion|satu miliar", "dozen|lusin", "eight|delapan", "fifty|lima puluh", "five|lima", "ninety|sembilan puluh", "one|satu", "seventy|tujuh puluh", "sixty|enam puluh", "ten|sepuluh", "three|tiga", "zero|nol"),
+        categoryAtLevel("Action", 2, "bake|memanggang", "chop|mencincang", "knead|menguleni", "polish|memoles", "rinse|membilas", "stir|mengaduk", "tie|mengikat", "unwrap|membuka bungkus", "weave|menenun"),
+        categoryAtLevel("Body", 2, "armpit|ketiak", "bladder|kandung kemih", "calf|betis", "collarbone|tulang selangka", "fingernail|kuku tangan", "hip|pinggul", "jaw|rahang", "lung|paru-paru", "rib|tulang rusuk", "thigh|paha", "toe|jari kaki", "tonsil|amandel", "vein|pembuluh darah"),
+        categoryAtLevel("Clothing", 2, "apron|celemek", "blazer|blazer", "cardigan|kardigan", "cufflinks|manset", "kimono|kimono", "overalls|baju terusan", "rain boots|sepatu bot hujan", "robe|jubah", "sash|selempang", "tuxedo|tuksedo"),
+        categoryAtLevel("Home", 2, "awning|kanopi", "cellar|ruang bawah tanah", "doormat|keset", "gutter|talang", "hinge|engsel", "latch|kait pintu", "mailbox|kotak surat", "railing|pegangan tangga", "shutter|daun jendela", "threshold|ambang pintu"),
+        categoryAtLevel("Object", 2, "anvil|landasan", "chisel|pahat", "funnel|corong", "hourglass|jam pasir", "ladle|sendok sayur", "level|waterpass", "plunger|penyedot", "sieve|saringan", "tongs|penjepit", "wrench|kunci inggris"),
+        categoryAtLevel("Place", 2, "arena|arena", "conservatory|rumah kaca", "embassy|kedutaan", "greenhouse|rumah kaca", "inn|penginapan", "lighthouse|mercusuar", "monastery|biara", "observatory|observatorium", "orphanage|panti asuhan", "sanctuary|tempat perlindungan", "vineyard|kebun anggur"),
+        categoryAtLevel("Nature", 2, "boulder|batu besar", "brook|anak sungai", "canyon|ngarai", "delta|delta", "dune|bukit pasir", "estuary|muara", "fjord|fyord", "lagoon|laguna", "plateau|dataran tinggi", "tundra|tundra", "wetland|lahan basah"),
+        categoryAtLevel("Weather", 2, "blizzard|badai salju", "cloudburst|hujan lebat", "downpour|hujan deras", "flurry|hujan salju ringan", "frost|embun beku", "gale|angin kencang", "monsoon|muson", "sleet|hujan bercampur salju", " squall|badai singkat", "wind chill|suhu terasa akibat angin"),
+        categoryAtLevel("Time", 2, "afternoon|siang", "biweekly|dua mingguan", "calendar year|tahun kalender", "daybreak|fajar", "fiscal year|tahun fiskal", "hourly|setiap jam", "leap year|tahun kabisat", "lifetime|seumur hidup", "millennium|milenium", "sunrise|matahari terbit", "sunset|matahari terbenam"),
+        categoryAtLevel("Feeling", 2, "amused|terhibur", "anxious|cemas", "content|puas", "discouraged|putus asa", "eager|tidak sabar", "envious|iri", "guilty|merasa bersalah", "overwhelmed|kewalahan", "resentful|kesal", "sympathetic|bersimpati"),
+        categoryAtLevel("Adjective", 2, "abundant|melimpah", "awkward|canggung", "bitter|pahit", "complex|rumit", "distant|jauh", "efficient|efisien", "flexible|lentur", "hollow|berongga", "loyal|setia", "mysterious|misterius"),
+        categoryAtLevel("Job", 2, "barber|tukang cukur", "carpenter|tukang kayu", "chef|koki", "cobbler|tukang sepatu", "curator|kurator", "geologist|ahli geologi", "optician|ahli kacamata", "pathologist|ahli patologi", "surveyor|juru ukur", "web designer|perancang web", "welder|tukang las"),
+        categoryAtLevel("Position", 2, "amid|di tengah", "alongside|di samping", "downstairs|di lantai bawah", "eastward|ke arah timur", "farther|lebih jauh", "inward|ke arah dalam", "leftmost|paling kiri", "northward|ke arah utara", "southward|ke arah selatan", "upstairs|di lantai atas", "westward|ke arah barat"),
+        categoryAtLevel("Expression", 2, "as far as I know|sejauh yang saya tahu", "don't mention it|tidak perlu sungkan", "I'm looking forward to it|saya menantikannya", "it doesn't matter|tidak masalah", "let me see|coba saya lihat", "my pleasure|dengan senang hati", "that's too bad|sayang sekali", "what do you mean|apa maksudmu", "you've got this|kamu pasti bisa"),
+        categoryAtLevel("Animal", 2, "aardvark|aardvark", "alpaca|alpaka", "armadillo|armadilo", "caribou|karibu", "coyote|anjing hutan", "dromedary|unta arab", "ermine|cerpelai", "gazelle|gazel", "ibex|ibeks", "jackal|jakal"),
+        categoryAtLevel("Fruit", 2, "ackee|akee", "cherimoya|sirsak gunung", "currant|kismis kecil", "durian|durian", "elderberry|elderberi", "feijoa|feijoa", "longan|kelengkeng", "quince|quince", "salak|salak", "soursop|sirsak"),
+        categoryAtLevel("Vegetable", 2, "amaranth|bayam merah", "endive|andewi", "kohlrabi|kolrabi", "lotus root|akar teratai", "mustard greens|sawi mustard", "napa cabbage|sawi putih", "purslane|krokot", "scallion|daun bawang", "seaweed|rumput laut"),
+        categoryAtLevel("Food", 2, "bruschetta|bruschetta", "chowder|sup krim", "crepe|krep", "empanada|empanada", "fondue|fondue", "hummus|hummus", "muffin|muffin", "quiche|pai gurih", "scone|scone", "tempura|tempura"),
+        categoryAtLevel("Drink", 2, "americano|americano", "eggnog|minuman telur susu", "horchata|horchata", "kefir|kefir", "lassi|lassi", "nectar|nektar", "oolong|teh oolong", "punch|minuman campuran", "sake|sake", "yerba mate|yerba mate"),
+        categoryAtLevel("School", 2, "alumni|alumni", "bursar|bendahara sekolah", "chancellor|rektor", "dean|dekan", "dissertation|disertasi", "enrollment|pendaftaran", "fellowship|beasiswa", "graduation|kelulusan", "lecture|kuliah", "workbook|buku kerja"),
+        categoryAtLevel("Family", 2, "bride|pengantin perempuan", "bridegroom|pengantin laki-laki", "caretaker|pengasuh", "descendant|keturunan", "godfather|ayah baptis", "guardian|wali", "household|rumah tangga", "orphan|anak yatim", "patriarch|kepala keluarga", "stepbrother|saudara tiri laki-laki"),
+        categoryAtLevel("Color", 2, "alabaster|putih gading", "auburn|cokelat kemerahan", "cerulean|biru cerulean", "chartreuse|hijau kekuningan", "copper|tembaga", "fuchsia|fuksia", "mauve|mauve", "ochre|oker", "periwinkle|biru periwinkle", "sepia|sepia"),
+        categoryAtLevel("Number", 2, "billionth|ke-sepermiliar", "duodecillion|duodesiliun", "googol|googol", "googolplex|googolplex", "quadrillion|kuadriliun", "quintillion|kuintiliun", "sextillion|sekstiliun", "septillion|septiliun", "undecillion|undesiliun", "vigintillion|vigintiliun"),
+        categoryAtLevel("Action", 2, "embroider|menyulam", "file|mengikir", "garnish|menghias makanan", "harvest|memanen", "inspect|memeriksa", "mend|menambal", "peel|mengupas", "shuffle|mengocok", "trim|merapikan", "whittle|mengukir"),
+        categoryAtLevel("Body", 2, "appendix|usus buntu", "bronchus|bronkus", "coccyx|tulang ekor", "diaphragm|diafragma", "esophagus|kerongkongan", "gallbladder|kantung empedu", "larynx|laring", "pancreas|pankreas", "spleen|limpa", "sternum|tulang dada"),
+        categoryAtLevel("Clothing", 2, "beret|baret", "bodysuit|baju terusan", "brooch|bros", "clogs|sepatu kayu", "corset|korset", "duffel coat|mantel duffel", "gaiters|pelindung kaki", "poncho|ponco", "shawl|selendang", "waistcoat|rompi"),
+        categoryAtLevel("Home", 2, "balustrade|pagar balkon", "bannister|pegangan tangga", "casement|jendela ayun", "dormer|jendela atap", "downspout|pipa talang", "eaves|lis atap", "joist|balok lantai", "skylight|jendela atap", "soffit|bagian bawah atap", "ventilator|ventilasi"),
+        categoryAtLevel("Object", 2, "awl|penusuk", "barometer|barometer", "caliper|jangka sorong", "crucible|wadah tahan panas", "gimbal|gimbal", "gyroscope|giroskop", "manometer|manometer", "micrometer|mikrometer", "sextant|sekstan", "vise|ragum"),
+        categoryAtLevel("Place", 2, "armory|gudang senjata", "barracks|barak", "belfry|menara lonceng", "caravanserai|penginapan kafilah", "coliseum|koloseum", "dormitory|asrama", "granary|lumbung", "hospice|rumah perawatan", "mint|percetakan uang", "pavilion|paviliun"),
+        categoryAtLevel("Nature", 2, "badlands|lahan tandus", "basin|cekungan", "bluff|tebing curam", "copse|rumpun pohon", "escarpment|lereng terjal", "gorge|jurang", "heath|tanah semak", "knoll|bukit kecil", "outcrop|singkapan batu", "ravine|jurang sempit"),
+        categoryAtLevel("Weather", 2, "anticyclone|antisiklon", "dewpoint|titik embun", "downburst|hembusan angin turun", "graupel|salju butiran", "ice storm|badai es", "microburst|hembusan mikro", "sirocco|angin siroko", "sunshower|hujan saat matahari bersinar", "whiteout|badai salju putih", "windstorm|badai angin"),
+        categoryAtLevel("Time", 2, "biennium|dua tahun", "fortnightly|setiap dua minggu", "hourglass|jangka waktu", "interlude|selang waktu", "lustrum|lima tahun", "microsecond|mikrodetik", "nanosecond|nanodetik", "sesquicentennial|peringatan 150 tahun", "triennium|tiga tahun", "twilight|senja"),
+        categoryAtLevel("Feeling", 2, "apathetic|apatis", "bewildered|bingung", "compassionate|penuh kasih", "dismayed|cemas", "elated|sangat gembira", "forlorn|sedih", "indignant|marah", "nostalgic|nostalgia", "remorseful|menyesal", "tranquil|tenang"),
+        categoryAtLevel("Adjective", 2, "ambiguous|bermakna ganda", "brittle|rapuh", "candid|terus terang", "diligent|rajin", "elusive|sulit dipahami", "feasible|layak", "impartial|tidak memihak", "nimble|lincah", "obsolete|usang", "vivid|jelas dan hidup"),
+        categoryAtLevel("Job", 2, "actuary|aktuaris", "cartographer|kartografer", "choreographer|koreografer", "confectioner|pembuat kue", "forensic analyst|analis forensik", "locksmith|ahli kunci", "meteorologist|ahli meteorologi", "sommelier|ahli anggur", "taxidermist|pengawet hewan", "upholsterer|pelapis furnitur"),
+        categoryAtLevel("Position", 2, "counterclockwise|berlawanan arah jarum jam", "downstream|ke hilir", "east|di timur", "in between|di tengah-tengah", "leeward|di sisi terlindung angin", "outbound|ke arah luar", "starboard|di sisi kanan kapal", "upstream|ke hulu", "upwind|melawan arah angin", "windward|di sisi datangnya angin"),
+        categoryAtLevel("Expression", 2, "after you|silakan duluan", "believe it or not|percaya atau tidak", "by all means|silakan saja", "call it a day|cukupkan untuk hari ini", "fingers crossed|semoga berhasil", "here you go|ini dia", "long time no see|lama tidak bertemu", "make yourself at home|anggap saja rumah sendiri", "that's the spirit|begitu dong", "what's going on|ada apa")
     ).flatten()
 
     val words: List<WordEntity> = entries
@@ -1252,6 +1342,7 @@ object InitialVocabulary {
                 englishWord = entry.englishWord,
                 indonesianMeaning = entry.indonesianMeaning,
                 category = entry.category,
+                level = entry.level,
                 exampleSentence = exampleSentenceFor(entry.category, entry.englishWord)
             )
         }
@@ -1259,7 +1350,8 @@ object InitialVocabulary {
     private data class Entry(
         val englishWord: String,
         val indonesianMeaning: String,
-        val category: String
+        val category: String,
+        val level: Int = 1
     )
 
     private fun category(category: String, vararg pairs: String): List<Entry> {
@@ -1272,6 +1364,10 @@ object InitialVocabulary {
                 category = category
             )
         }
+    }
+
+    private fun categoryAtLevel(category: String, level: Int, vararg pairs: String): List<Entry> {
+        return category(category, *pairs).map { it.copy(level = level) }
     }
 
     private fun exampleSentenceFor(category: String, word: String): String {

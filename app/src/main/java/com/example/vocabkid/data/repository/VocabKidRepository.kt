@@ -1,5 +1,6 @@
 package com.example.vocabkid.data.repository
 
+import android.content.Context
 import androidx.room.withTransaction
 import com.example.vocabkid.data.local.database.InitialVocabulary
 import com.example.vocabkid.data.local.database.VocabKidDatabase
@@ -8,6 +9,8 @@ import com.example.vocabkid.data.local.entity.ConversationLineEntity
 import com.example.vocabkid.data.local.entity.ConversationScenarioProgressEntity
 import com.example.vocabkid.data.local.entity.ReviewHistoryEntity
 import com.example.vocabkid.data.local.entity.StudentEntity
+import com.example.vocabkid.data.local.entity.RosterStudentEntity
+import com.example.vocabkid.domain.model.UserRole
 import com.example.vocabkid.data.local.entity.WordEntity
 import com.example.vocabkid.data.local.entity.WordProgressEntity
 import com.example.vocabkid.data.local.entity.WordWithProgressEntity
@@ -28,9 +31,36 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 class VocabKidRepository(
-    private val database: VocabKidDatabase
+    private val database: VocabKidDatabase,
+    private val appContext: Context? = null
 ) {
+    private val quizPreferences by lazy {
+        appContext?.getSharedPreferences("vocabkid_quiz_preferences", Context.MODE_PRIVATE)
+    }
+    private val sessionPreferences by lazy {
+        appContext?.getSharedPreferences("vocabkid_session", Context.MODE_PRIVATE)
+    }
+
+    fun getUsernameSession(): String? = sessionPreferences
+        ?.getString(KEY_USERNAME_SESSION, null)
+        ?.takeIf { it.isNotBlank() }
+
+    suspend fun startUsernameSession(username: String, role: UserRole) {
+        val cleanUsername = username.trim()
+        saveStudent(name = cleanUsername, grade = 3, role = role)
+        sessionPreferences?.edit()?.putString(KEY_USERNAME_SESSION, cleanUsername)?.apply()
+    }
+
+    fun getUnlockedQuizLevel2Categories(): Set<String> {
+        return quizPreferences?.getStringSet(KEY_LEVEL_2_UNLOCKED_CATEGORIES, emptySet())?.toSet() ?: emptySet()
+    }
+
+    fun unlockQuizLevel2(category: String) {
+        val unlockedCategories = getUnlockedQuizLevel2Categories() + category
+        quizPreferences?.edit()?.putStringSet(KEY_LEVEL_2_UNLOCKED_CATEGORIES, unlockedCategories)?.apply()
+    }
     private val studentDao = database.studentDao()
+    private val rosterStudentDao = database.rosterStudentDao()
     private val wordDao = database.wordDao()
     private val progressDao = database.wordProgressDao()
     private val historyDao = database.reviewHistoryDao()
@@ -38,6 +68,52 @@ class VocabKidRepository(
     private val conversationProgressDao = database.conversationProgressDao()
 
     fun observeStudent(): Flow<StudentEntity?> = studentDao.observeStudent()
+
+    fun observeRosterStudents(): Flow<List<RosterStudentEntity>> = rosterStudentDao.observeAll()
+
+    suspend fun seedInitialRosterStudentsIfNeeded() {
+        val existingCount = rosterStudentDao.count()
+        if (existingCount > 0 && existingCount !in setOf(30, 34, 36)) return
+        if (existingCount in setOf(30, 34, 36)) rosterStudentDao.deleteAll()
+        val namesByGrade = mapOf(
+            4 to listOf(
+                "Aditya Pratama" to "L", "Bagas Saputra" to "L", "Daffa Ramadhan" to "L", "Raka Wijaya" to "L",
+                "Fajar Nugroho" to "L", "Miko Setiawan" to "L", "Rendi Kurnia" to "L", "Rizky Maulana" to "L",
+                "Andra Firmansyah" to "L", "Bima Prakoso" to "L", "Galang Hidayat" to "L", "Yoga Saputra" to "L",
+                "Aisyah Rahma" to "P", "Citra Lestari" to "P", "Nabila Putri" to "P", "Salsabila Putri" to "P",
+                "Intan Permata" to "P", "Nadya Kirana" to "P", "Aulia Maharani" to "P", "Tiara Anjani" to "P",
+                "Bella Safitri" to "P", "Lia Kusuma" to "P"
+            ),
+            5 to listOf(
+                "Andi Setiawan" to "L", "Dimas Kurniawan" to "L", "Galang Maulana" to "L", "Rizky Firmansyah" to "L",
+                "Naufal Hidayat" to "L", "Yoga Prakoso" to "L", "Wahyu Ramadhan" to "L", "Hendra Gunawan" to "L",
+                "Bunga Maharani" to "P", "Eka Wulandari" to "P", "Larasati Ayu" to "P", "Putri Amelia" to "P",
+                "Siti Aulia" to "P", "Dewi Kartika" to "P", "Gita Permata" to "P", "Rani Oktaviani" to "P",
+                "Maya Lestari" to "P", "Fitri Handayani" to "P"
+            ),
+            6 to listOf(
+                "Arif Hidayat" to "L", "Bima Purnama" to "L", "Fikri Akbar" to "L", "Hendra Saputra" to "L",
+                "Rafi Alfarizi" to "L", "Tegar Maulana" to "L", "Ilham Pratama" to "L", "Raka Firmansyah" to "L",
+                "Dion Kurniawan" to "L", "Farhan Nugraha" to "L",
+                "Bella Safitri" to "P", "Dewi Anggraini" to "P", "Gita Maharani" to "P", "Kezia Oktaviani" to "P",
+                "Salsa Nurfadila" to "P", "Ayu Lestari" to "P", "Nisa Ramadhani" to "P", "Mutiara Sari" to "P",
+                "Rara Amelia" to "P", "Vina Permata" to "P"
+            )
+        )
+        val students = namesByGrade.flatMap { (grade, names) ->
+            names.mapIndexed { index, (name, gender) ->
+                val nis = "${grade}0${(index + 1).toString().padStart(2, '0')}"
+                RosterStudentEntity(
+                    name = name,
+                    nis = nis,
+                    grade = grade,
+                    gender = gender,
+                    email = "${name.lowercase().replace(" ", ".")}@vocarepeat.sch.id"
+                )
+            }
+        }
+        rosterStudentDao.insertAll(students)
+    }
 
     fun observeWordsWithProgress(): Flow<List<WordWithProgressEntity>> {
         return wordDao.observeWordsWithProgress()
@@ -53,6 +129,10 @@ class VocabKidRepository(
 
     fun observeDueWords(): Flow<List<WordWithProgressEntity>> {
         return wordDao.observeDueWords(DateUtils.todayMillis())
+    }
+
+    suspend fun getDueWordCount(today: Long = DateUtils.todayMillis()): Int {
+        return progressDao.countDueWords(today)
     }
 
     fun observeDifficultWords(limit: Int = 12): Flow<List<WordWithProgressEntity>> {
@@ -143,7 +223,8 @@ class VocabKidRepository(
         name: String,
         grade: Int,
         avatar: StudentAvatar = StudentAvatar.SISWA,
-        nis: String = ""
+        nis: String = "",
+        role: UserRole = UserRole.MURID
     ) {
         val now = System.currentTimeMillis()
         database.withTransaction {
@@ -154,6 +235,7 @@ class VocabKidRepository(
                     nis = nis.trim(),
                     grade = grade.coerceIn(MIN_GRADE, MAX_GRADE),
                     avatar = avatar.id,
+                    role = role.name,
                     createdAt = now,
                     updatedAt = now
                 )
@@ -163,6 +245,7 @@ class VocabKidRepository(
 
     suspend fun clearStudent() {
         studentDao.clearStudents()
+        sessionPreferences?.edit()?.remove(KEY_USERNAME_SESSION)?.apply()
     }
 
     suspend fun addConversationLine(
@@ -467,12 +550,19 @@ class VocabKidRepository(
         )
     }
 
-    suspend fun createQuizQuestions(questionCount: Int = 10): List<QuizQuestion> {
+    suspend fun createQuizQuestions(
+        questionCount: Int = 10,
+        category: String? = null,
+        level: Int? = null
+    ): List<QuizQuestion> {
         val words = wordDao.getAllWords()
+            .filter { category == null || it.category == category }
+            .filter { level == null || it.level == level }
+            .sortedWith(compareBy<WordEntity> { it.category }.thenBy { it.level }.thenBy { it.englishWord })
         if (words.size < 4) return emptyList()
 
         val meanings = words.map { it.indonesianMeaning }.distinct()
-        return words.shuffled().take(questionCount.coerceAtMost(words.size)).map { word ->
+        return words.take(questionCount.coerceAtMost(words.size)).map { word ->
             val distractors = meanings
                 .filterNot { it == word.indonesianMeaning }
                 .shuffled()
@@ -535,6 +625,8 @@ class VocabKidRepository(
     }
 
     private companion object {
+        const val KEY_USERNAME_SESSION = "username"
+        const val KEY_LEVEL_2_UNLOCKED_CATEGORIES = "level_2_unlocked_categories"
         const val DEFAULT_STUDENT_NAME = "Siswa VocabKid"
         const val DEFAULT_CATEGORY = "Object"
         const val MIN_GRADE = 1
